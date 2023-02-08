@@ -1,0 +1,31 @@
+{
+  "name": "geomixerv",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/geomixerv.umd.cjs",
+  "module": "./dist/geomixerv.js",
+  "exports": {
+    ".": {
+      "import": "./dist/geomixerv.js",
+      "require": "./dist/geomixerv.umd.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "geomixer": "vite build --config geomixer-config.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^2.0.2",
+    "vite": "^4.0.0",
+    "vite-svg-plugin": "^1.0.2"
+  },
+  "dependencies": {
+    "self-intersects": "^0.0.3",
+    "splaytree": "^3.1.1",
+    "tinyqueue": "^2.0.3"
+  }
+}
