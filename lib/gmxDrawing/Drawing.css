@@ -6,26 +6,6 @@
 .leaflet-popup-content textarea:hover {
     border: 1px solid #999;
 }
-.gmxTooltipBGp,
-.gmxTooltipBG {
-    fill: white;
-}
-.gmxTooltipBGph {
-	fill: wheat;
-}
-.gmxTooltipBGph,
-.gmxTooltipBGp,
-.gmxTooltipBG {
-    stroke: black;
-    stroke-width: 1;
-    opacity: 0.85;
-	pointer-events: none;
-}
-svg tspan.sup {
-    font-size: 8px;
-    font-weight: bold;
-    baseline-shift: super;
-}
 .leaflet-drawing-lines {
    pointer-events: none;
 }
@@ -131,4 +111,21 @@ svg tspan.sup {
 }
 .leaflet-contextmenu a.leaflet-contextmenu-item.over.leaflet-contextmenu-item-disabled {
 	cursor: default;
+}
+.gmxTooltipBGph, .gmxTooltipBGp, .gmxTooltipBG {
+    stroke: black;
+    stroke-width: 1;
+    opacity: 0.85;
+	pointer-events: none;
+}
+.gmxTooltipBGp, .gmxTooltipBG {
+    fill: white;
+}
+.gmxTooltipBGph {
+	fill: wheat;
+}
+svg tspan.sup {
+    font-size: 8px;
+    font-weight: bold;
+    baseline-shift: super;
 }
