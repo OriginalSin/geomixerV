@@ -13,8 +13,23 @@ const map = new L.Map(document.querySelector('#app'),
 		zoom: 3
 	}
 );
-map.addControl(new L.Control.gmxDrawing({ id: 'drawing' }));
-
+// map.gmxDrawing.options.skipEqual = true;
+map.addControl(new L.Control.gmxDrawing({ id: 'drawing', drawOptions: {minPoints: 0, skipEqual: true} }));
+		// map.gmxDrawing.once('drawstop', ev => {
+		map.gmxDrawing.on('add drawstop edit', ev => {
+let geo = ev.object.toGeoJSON(false);
+let type = ev.type;
+// console.log(type, geo.geometry.coordinates);
+			if (type === 'add') {
+			// if (ev.mode !== 'add') {
+// console.log('add', ev, geo.geometry.coordinates);
+			} else if (type === 'edit') {
+// console.log('drawstop', ev, geo.geometry.coordinates);
+			}
+// console.log('drawstop', ev.object.mode, ev.object.toGeoJSON().geometry.coordinates[0]);
+			// if (gmxDrawing._saveFeature) gmxDrawing._saveFeature(ev.object, true);
+			// map._gmxEventsManager._drawstart = false;
+		});
 
 const mapId = 'FEZ2G';
 L.gmx.loadMap(mapId, {
