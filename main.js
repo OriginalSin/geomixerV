@@ -54,6 +54,31 @@ L.gmx.loadMap(mapId, {
 			map.addLayer(obj);
 			map.fitBounds(obj.getBounds());
 console.log('rprop', rprop);
+
+			const options = {
+				contextmenuItems: [
+					{ text: 'Включить для прилипания', callback: prilip },
+					{ text: 'Отключить прилипание', callback: prilipOff },
+				]
+			};
+			obj.bindContextMenu(options);
+
 		}
 	});
 });
+	const prilipOff = (ev) => {
+		map.gmxDrawing.getFeatures().forEach(it => {
+			if (it.options.prilipObj) it.remove();
+		});
+	}
+	const prilip = (ev) => {
+		let target = ev.relatedTarget._gmx.lastMouseover.target,
+			it = target.item.properties,
+			geo = it[it.length - 1],
+			geoJson = L.geoJson(L.gmxUtil.geometryToGeoJSON(geo, true, true)).getLayers()[0];
+		map.gmxDrawing.add(geoJson.feature , {
+			editable: false,
+			prilipObj: true,
+			id: target.id
+		});
+	};
