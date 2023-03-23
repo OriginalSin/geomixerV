@@ -1,8 +1,24 @@
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
+import { svgBuilder } from 'vite-svg-plugin'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 const proxyPrefix = 'https://maps.kosmosnimki.ru';
 export default defineConfig({
+		plugins: [
+			svgBuilder({ path: './svg/', prefix: '' }),
+			svelte({
+			  onwarn(warning, defaultHandler) {
+				if (warning.code === 'a11y-distracting-elements') return;
+				if (warning.code === 'a11y-click-events-have-key-events') return;
+				// console.log('warning.code', warning.code);
+				// return;
+
+				// handle all other warnings normally
+				defaultHandler(warning);
+			  }
+			})
+		],
   build: {
 	minify: false,
     lib: {

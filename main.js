@@ -9,13 +9,117 @@ const map = new L.Map(document.querySelector('#app'),
 		squareUnit: 'km2',
 		distanceUnit: 'km',
 		center: new L.LatLng(50, 20),
-		zoomControl: true,
+			attributionControl: false,
+			zoomControl: false,
 		zoom: 3
 	}
 );
+L.gmx.map = map;
+map.addControl(L.control.gmxZoom({}));
+	map.addControl(L.control.gmxIcon({
+			id: 'refresh-gif',
+			regularImageUrl: '',
+			title: 'Статус загрузки'
+		})
+		.on('statechange', function (ev) {
+			console.log("active", ev);
+		})
+	);
+	map.addControl(L.control.gmxHide());
+	map.addControl(L.control.gmxIcon({
+			id: 'gmxprint',
+			svgSprite: true,
+			// togglable: true,
+			title: 'Печать'
+		})
+		.on('click', function (ev) {
+			// const target = ev.target;
+			// const flag = target.options.isActive;
+			const flag = true;
+			const body = document.body;
+			if (flag) body.classList.add('printMap');
+			else body.classList.remove('printMap');
+
+			console.log("active", flag);
+		})
+	);
+	map.addControl(L.control.gmxCenter({color: 'red'}));
+let geo_ = {
+    "type": "Polygon",
+    "coordinates":
+	// null
+	[
+	[
+            [10, 0]
+            ,[10, 10]
+            ,[0, 10]
+            ,[0, 0]
+            ,[10, 0]
+	]
+	,
+	[
+            [8, 5]
+            ,[5, 8]
+            ,[8, 8]
+            ,[8, 5]
+	]
+	]
+};
+let geoml = {
+    // "type": "LineString",
+    "type": "MultiLineString",
+    "coordinates":
+	// null
+	[
+	[
+            [10, 0]
+            ,[10, 10]
+            ,[0, 10]
+            ,[0, 0]
+            ,[10, 1]
+	]
+	,
+	[
+            [8, 5]
+            ,[5, 8]
+            ,[8, 8]
+            ,[8, 6]
+	]
+	]
+};
+let geo = {
+    "type": "LineString",
+    "coordinates":
+	// null
+	[
+            [10, 0]
+            ,[10, 10]
+            ,[0, 10]
+            ,[0, 0]
+            ,[10, 0]
+	]
+};
+        let gmxLocation = L.control.gmxLocation({gmxPopup: 'window'});
+        map.addControl(gmxLocation);
+
+let area = L.gmxUtil.geoJSONGetArea(geo);
+console.log('area', area);
+let length1 = L.gmxUtil.geoJSONGetLength(geo_);
+let length = L.gmxUtil.geoJSONGetLength(geoml);
+console.log('length', length, length1);
+
+let tt = L.geoJson(geoml);
+L.gmx.gmxDrawing.addGeoJSON(tt, {showPointsNum: true});
 // map.gmxDrawing.options.skipEqual = true;
-map.addControl(new L.Control.gmxDrawing({ id: 'drawing', drawOptions: {minPoints: 0, skipEqual: true} }));
+// map.addControl(new L.Control.gmxDrawing({ id: 'drawing', drawOptions: {showPointsNum: true, minPoints: 0, skipEqual: true} }));
+map.addControl(L.control.gmxDrawing({ id: 'drawing', drawOptions: {showPointsNum: true, minPoints: 0, skipEqual: true} }));
 		// map.gmxDrawing.once('drawstop', ev => {
+		map.gmxDrawing.on('change', ev => {
+// let type = ev.type;
+			// if (type === 'drawstop' && ev.op !== 'pointRemove') {
+console.log(ev.type, ev);
+		});
+/*			
 		map.gmxDrawing.on('add drawstop edit', ev => {
 let geo = ev.object.toGeoJSON(false);
 let type = ev.type;
@@ -30,7 +134,7 @@ let type = ev.type;
 			// if (gmxDrawing._saveFeature) gmxDrawing._saveFeature(ev.object, true);
 			// map._gmxEventsManager._drawstart = false;
 		});
-
+*/
 const mapId = 'FEZ2G';
 L.gmx.loadMap(mapId, {
 	// leafletMap: map,

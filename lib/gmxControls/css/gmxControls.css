@@ -1,8 +1,19 @@
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+input {
+	-moz-appearance:textfield;
+}
+
+
+
 .leaflet-gmx-icons {
     margin-left: 50px;
 }
 .leaflet-gmx-icon-sprite {
-    background-image: url("img/gmxSprite.png");
+    /* background-image: url("/img/gmxSprite.png"); */
 }
 
 .leaflet-left .leaflet-gmx-icon.leaflet-control {
@@ -116,12 +127,22 @@
     pointer-events: none;
     background-position: -12px 116px;
 }
+
 .leaflet-gmx-icon-group-vertical .triangle-active {
     background-position: -12px 84px;
 }
 .leaflet-gmx-icon-groupSvg {
 	border-radius: 4px;
 	box-shadow: 3px 3px 4.7px 0.3px rgba(0, 0, 0, 0.24);
+	overflow: hidden;
+	height: 32px;
+	border: none;
+}
+.leaflet-gmx-icon-groupSvg:hover {
+	/* background-color: red; */
+    box-shadow: none;
+	overflow: visible;
+	height: auto;
 }
 .triangleSvg {
     z-index: 10;
@@ -134,6 +155,7 @@
 	width: 24px;
     height: 24px;
 }
+.leaflet-gmx-icon-group-vertical.isActiveItems .triangleSvg,
 .triangleSvg.triangle-active {
 	fill: #f57c00;
 }
@@ -191,7 +213,7 @@
 .leaflet-gmx-icon-hide {
     background-position: -592px 1px;
     margin-right: 10px;
-    background-image: url("img/gmxSprite.png");
+    /* background-image: url("/img/gmxSprite.png"); */
 }
 .leaflet-left .leaflet-gmx-icon-hide.leaflet-control {
     margin-left: 12px;
@@ -222,7 +244,7 @@
 	width: 210px;
 }
 .leaflet-gmx-coordFormatChange {
-    background-image: url("img/coords.png");
+    background-image: url("/img/coords.png");
     cursor: pointer;
     width: 10px;
     height: 9px;
@@ -381,6 +403,9 @@
 .leaflet-control-zoom.leaflet-bar.gmxzoom-container.leaflet-control {
     background-color: #fff;
     position: absolute;
+    left: 12px;
+    top: 56px;
+    margin: 0;
 }
 .leaflet-control-zoom.leaflet-bar.gmxzoom-container.leaflet-control  a {
     color: #606060;
@@ -396,7 +421,11 @@
     text-align: center;
 	padding-top: 2px;
     height: 23px;
+    width: 26px;
     font-size: 14px;
+	border: none;
+    outline: none;
+	color: red;
 }
 .gmxZoomRed {
 	color: #ec5252;
@@ -463,10 +492,10 @@
 }
 
 .leaflet-gmx-logo {
-    background-image: url("img/logo_footer.png");
+    background-image: url("/img/logo_footer.png");
 }
 .leaflet-gmx-logo-color {
-    background-image: url("img/logo_footer_color.png");
+    background-image: url("/img/logo_footer_color.png");
 }
 .leaflet-control.leaflet-gmx-logo,
 .leaflet-control.leaflet-gmx-logo-color {
@@ -523,12 +552,18 @@
 .leaflet-gmx-visibility-hidden {
   visibility: hidden;
 }
-.icon-refresh-gif {
-    background-image: url("img/progress.gif");
-    width: 16px;
-    height: 16px;
+.leaflet-left .leaflet-gmx-icon.leaflet-gmx-icon-refresh-gif.active {
+	display: block;
 }
-
+.leaflet-left .leaflet-gmx-icon.leaflet-gmx-icon-refresh-gif {
+    position: absolute;
+    top: 148px;
+    left: 13px;
+    border-radius: 4px;
+    margin: 0;
+    background: url(/img/progress.gif) no-repeat center #f4f4f452;
+	display: none;
+}
 /*
    Animation example, for spinners
 */
