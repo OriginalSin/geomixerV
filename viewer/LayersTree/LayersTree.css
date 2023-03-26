@@ -1,0 +1,225 @@
+.tree {
+	line-height: 24px;
+}
+.tree .date-range-container svg.time {
+    height: 16px;
+    width: 16px;
+    vertical-align: -3px;
+}
+.tree .svgIcon.timeline {
+    width: 13px;
+    height: 13px;
+    fill: #999999;
+}
+.tree {
+    height: 100%;
+    font-family: sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+}
+.tree .map.dark {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+.scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 8px;
+  background-color: #aaa;
+}
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #686b8494;
+}
+/*
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+.card {
+  padding: 2em;
+}
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+	
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+.layers-before,
+.layers-tree,
+.layers {
+	border: 1px solid #DDD;
+    margin: 10px 5px;
+}
+.leftPanelCont  div.layers > ul {
+    margin-left: -8px;
+}
+.layers-tree .mainmap-title {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+	padding: 7px 8px 7px 8px;
+
+}
+.layers span.layer {
+	cursor: pointer;
+}
+
+.layers span.colorIcon img.svg {
+    width: 7px;
+}
+
+.layers span.colorIcon {
+    width: 10px;
+    height: 12px;
+	display: inline-block;
+    user-select: none;
+	cursor: pointer;
+}
+.layers ul.grp {
+	padding-inline-start: 14px;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+.layers li.layer,
+.layers li.group {
+	list-style-type: none;
+}
+.layers li.layer.gmx_drag span.leaflet-drag-target,
+.layers li.layer.gmx_drag,
+.layers li.group.gmx_drag {
+	pointer-events: none;
+}
+.layers.gmx_drag_cont li.layer.gmx_drag span.layer,
+.layers.gmx_drag_cont li.group.gmx_drag span.layer {
+	cursor: move;
+	position: absolute;
+    margin-left: 4px;
+    background-color: #DDD;
+    padding: 0px 10px;
+    border: 1px dotted red;
+	 z-index: 10000;
+}
+.layers .swap {
+    background-color: transparent;
+	height: 2px;
+}
+.layers div.swapEnd,
+.layers > div.swapBegin {
+    background-color: transparent;
+	height: 8px;
+}
+.layers.gmx_drag_cont li.group.closed div.line:hover {
+	background-color: #b1afb65c;
+}
+.layers.gmx_drag_cont div.swapEnd:hover,
+.layers.gmx_drag_cont > div.swapBegin:hover,
+.layers.gmx_drag_cont li.layer.closed div.line:hover .swap {
+    background: url(/img/swap.gif) no-repeat;
+}
+.layers div.line {
+	white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    left: -6px;
+    position: relative;
+}
+.layers .group .hitarea {
+    background: url('/icons2.png') -97px -4px no-repeat;
+    height: 16px;
+    width: 6px;
+	margin: 4px 0 0 0px;
+    float: left;
+    cursor: pointer;
+
+    z-index: 2;
+    position: relative;
+
+}
+.layers .group.closed .hitarea {
+    background-position: -115px -3px;
+}
+.layers .group .line {
+    cursor: pointer;
+}
+.layers .svgIcon.timeline {
+    width: 13px;
+    height: 13px;
+	fill: #999999;
+}
+.layers .line .beforeIcon {
+	width: 12px;
+    display: inline-block;
+}
+
+.icon-refresh-gif {
+    background-image: url(/img/progress.gif);
+    width: 16px;
+    height: 16px;
+}
+*/

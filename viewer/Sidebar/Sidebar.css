@@ -1,0 +1,80 @@
+:root {
+  --sidebar-width: 40px;
+  --sidebar-active-width: 400px;
+}
+body.sidebar #app {
+	width: calc(100& - var(--sidebar-width));
+}
+body.sidebar.active #app {
+	width: calc(100& - var(--sidebar-active-width));
+}
+body.sidebar.active .sidebar.leaflet-control {
+	width: var(--sidebar-active-width);
+}
+body.sidebar.active .sidebar.leaflet-control .pans {
+	width: calc(var(--sidebar-active-width) - var(--sidebar-width));
+    height: 100%;
+    background: white;
+    float: right;
+}
+
+.sidebar.leaflet-control {
+	width: var(--sidebar-width);
+	height: 100vh;
+	/* background-color: #4c5567; */
+	text-align: center;
+}
+.sidebar ul.tabs {
+	width: var(--sidebar-width);
+	height: 100%;
+    padding-left: inherit;
+    background-color: #4c5567;
+	margin:0;
+	float: inherit;
+}
+.sidebar ul.tabs li.active {
+    border-left-color: #70cbe0;
+    fill: #70cbe0;
+}
+.sidebar ul.tabs li {
+	height: 40px;
+	border-left: 4px solid transparent;
+	fill: white;
+	list-style-type: none;
+	cursor: pointer;
+}
+.sidebar ul.tabs li:hover {
+    background-color: #8e974977;
+}
+.sidebar ul.tabs svg {
+    position: relative;
+	top: 8px;
+	left: -2px;
+	pointer-events: none;
+}
+.sidebar .pans > div {
+    display: none;
+}
+.sidebar .pans > div.active {
+    display: unset;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.scanex-sidebar > * {
+    float: left;
+    vertical-align: top;    
+}
+.scanex-sidebar > .tabs > *,
+.scanex-sidebar > .panels > * {
+    display: block;
+}
+.scanex-sidebar > .panels > .panel.hidden {
+    display: none;
+}

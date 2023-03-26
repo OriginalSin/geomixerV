@@ -1,0 +1,79 @@
+body > .all > .header {
+    white-space: nowrap;
+    overflow: hidden;
+}
+input.warn {
+	color: red;
+}
+.header > .headerWidget {
+    display: table;
+    height: 35px;
+    background: #f3f7fa;
+    border-bottom: 1px solid #d8e1e8;
+}
+
+.leftMenu {
+    position: absolute;
+    height: calc(100% - 36px);
+    overflow: hidden;
+}
+.leftMenu.active ~ div#map {
+	left: 400px;
+	width: calc(100% - 400px);
+}
+
+body > .all.leftMenuOn .map {
+    /* height: calc(100% - 36px); */
+	/* left: 40px; */
+    /* width: calc(100% - 40px); */
+}
+.leftMenu .group.closed ul.grp {
+	display: none;
+}
+.leftPanelCont {
+    overflow-y: auto;
+    height: calc(100% - 42px);
+}
+.scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 8px;
+  background-color: #aaa;
+}
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: #686b8494;
+}
+
+/*
+
+body > .all.leftMenuOn .map.activeIconSidebar {
+    left: 400px;
+    width: calc(100% - 400px);
+}
+*/
+/*   Print   */
+
+body .all .print-ui,
+body.printMap .all > .header,
+body.printMap .all .map .leaflet-control-container,
+body.printMap .all .map .zoom-map,
+body.printMap .all .leftMenu {
+	display: none;
+}
+body.printMap .all .leftMenu.active ~ div#map {
+	left: 0px;
+	width: 100%;
+}
+
+body.printMap .all .print-ui {
+	display: block;
+}
+
+@media print {
+  body.printMap .all .print-ui {
+    display: none;
+  }
+}
+
+.leftPanelCont .group.closed ul.grp {
+    display: none;
+}
