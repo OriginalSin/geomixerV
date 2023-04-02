@@ -215,13 +215,16 @@
     position: relative;
     right: -64px;
 }
+
+    /*
 .date-range-container svg.time {
     height: 16px;
     width: 16px;
 	vertical-align: -3px;
 }
 
-    /* make the native arrow invisible and stretch it over the whole field so you can click anywhere in the input field to trigger the native datepicker
+
+	make the native arrow invisible and stretch it over the whole field so you can click anywhere in the input field to trigger the native datepicker
     input[type="date"]::-webkit-calendar-picker-indicator {
         position: absolute;
         top: 0;

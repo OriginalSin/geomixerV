@@ -29,7 +29,7 @@ const recalcItem = (id) => {
 	if (!flagNew) {
 		gmxStyles = gmxStyles.styles.map(it => it.RenderStyle);
 	}
-console.log('gmxStyles', gmxStyles)
+// console.log('gmxStyles', gmxStyles)
 	gmxStyle = gmxStyles.length === 1 ? gmxStyles[0] : null;
 	iconImage =	''; iconStyle =	'';
 	if (gmxStyle) {
@@ -56,10 +56,12 @@ console.log('gmxStyles', gmxStyles)
 	closed = prp.expanded ? '' : 'closed';
 	visible = props.visible ? true : false;
 	showCheckbox = prp.LayerID || prp.ShowCheckbox ? true : false;
+// console.log('line', visible, prp);
 };
 $: layerID && recalcItem(layerID);
 
 beforeUpdate(() => {
+	if (gmxMap.layersByID[layerID]) recalcItem(layerID);
 	// if (!rawTree) getGmxMap();
 	// content = rawTree.content || {};
 	// props = content.properties || {};
@@ -154,9 +156,12 @@ console.log('clickMe', layerID, node.classList);
 };
 const toggleLayer = ev => {
 	const node = ev.target;
-	if (gmxMap.layersByID[layerID]) {
+// console.log('ggggg', layerID, prp);
+	if (prp.GroupID) {
+		prp.visible = !prp.visible;
+		dispatch('notify', {cmd: 'toggleGroupLayers', node: ev.target.parentNode});
+	} else if (gmxMap.layersByID[layerID]) {
 		const layer = gmxMap.layersByID[layerID];
-// console.log('ggggg', layerID, gmxMap);
 		if (layer._map) {
 			gmxMap.leafletMap.removeLayer(layer);
 		} else {
@@ -168,6 +173,8 @@ const showPos = ev => {
 	if (_gmx.geometry) {
 		const bounds = L.gmxUtil.getGeometryBounds(_gmx.geometry).toLatLngBounds();
 		gmxMap.leafletMap.fitBounds(bounds);
+	} else {
+		dispatch('notify', {cmd: 'toggle', node: ev.target.parentNode});
 	}
 }
 
@@ -198,6 +205,9 @@ div.line {
     display: inline-block;
     /* margin-left: -16px; */
     /* position: absolute; */
+}
+.line span.layer {
+    cursor: pointer;
 }
 .line span.colorIcon {
     width: 10px;
