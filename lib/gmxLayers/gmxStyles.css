@@ -14,10 +14,6 @@
 .leaflet-popup-content .gmx-style-legend .styleName {
 	display: inherit;
 }
-svg.svgIcon {
-	width: 24px;
-    height: 24px;
-}
 
 /*
 .gmx-style-legend .prefixWrapper {

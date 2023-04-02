@@ -52,6 +52,11 @@ body.sidebar.active .sidebar.leaflet-control .pans {
 	left: -2px;
 	pointer-events: none;
 }
+.sidebar ul.tabs svg.svgIcon {
+	width: 24px;
+    height: 24px;
+}
+
 .sidebar .pans > div {
     display: none;
 }
