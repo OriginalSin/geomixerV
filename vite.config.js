@@ -2,11 +2,13 @@ import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import { svgBuilder } from 'vite-svg-plugin'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
+import glsl from 'vite-plugin-glsl';
 
 const proxyPrefix = 'https://maps.kosmosnimki.ru';
 export default defineConfig({
 		plugins: [
 			svgBuilder({ path: './svg/', prefix: '' }),
+        glsl(),
 			svelte({
 			  onwarn(warning, defaultHandler) {
 				if (warning.code === 'a11y-distracting-elements') return;

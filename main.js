@@ -2,10 +2,11 @@ import './lib/main.js'
 import './viewer/Sidebar/SidebarControl.js'
 import './viewer/Sidebar/Sidebar.css'
 import './viewer/viewer.css'
-// import './viewer/index.js'
+import './webgl/index.js'
 import LayersTree from './viewer/LayersTree/LayersTree.svelte';
 import { _layerTree } from './viewer/stores.js';
 
+window.global = {};
 const addControls = (map) => {
 	map.gmxControlsManager.init({
 		// gmxLoaderStatus: true,

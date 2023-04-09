@@ -20,13 +20,23 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.0.2",
+    "rollup-plugin-glslify": "^1.3.1",
     "svelte": "^3.57.0",
     "vite": "^4.0.0",
     "vite-svg-plugin": "^1.0.2"
   },
   "dependencies": {
+    "@vaalentin/gl-program": "^1.0.4",
+    "buffer-esm": "^1.2.0",
+    "earcut": "^2.2.4",
+    "gl-buffer": "^2.1.2",
+    "gl-vao": "^1.3.0",
+    "glslify": "^7.1.1",
+    "mugl": "^0.2.2",
+    "polyline-normals": "^2.0.2",
     "self-intersects": "^0.0.3",
     "splaytree": "^3.1.1",
-    "tinyqueue": "^2.0.3"
+    "tinyqueue": "^2.0.3",
+    "vite-plugin-glsl": "^1.1.2"
   }
 }
