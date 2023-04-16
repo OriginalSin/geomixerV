@@ -47,6 +47,7 @@ export default defineConfig({
     proxy: {
       // string shorthand
       '/Layer/CheckVersion': proxyPrefix + '/Layer/CheckVersion.ashx',
+      '/Layer/GetLayerJson': proxyPrefix + '/Layer/GetLayerJson.ashx',
       '/TileSender.ashx': proxyPrefix + '/TileSender.ashx',
       '/Layer': proxyPrefix + '/Layer',
       '/VectorLayer': proxyPrefix + '/VectorLayer',

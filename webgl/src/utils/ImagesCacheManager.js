@@ -17,7 +17,7 @@ class ImagesCacheManager {
         } else {
             var req = { "src": src, "success": success };
             if (this._counter >= 1) {
-                this._pendingsQueue.push(req);
+                this._pendingsQueue.unshift(req);
             } else {
                 this._exec(req);
             }
@@ -51,10 +51,11 @@ class ImagesCacheManager {
                 var req = this._pendingsQueue.pop();
                 if (req) {
                     if (this.imagesCache[req.src]) {
-                        if (this._counter <= 0)
+                        if (this._counter <= 0) {
                             this._counter = 0;
-                        else
+                        } else {
                             this._counter--;
+                        }
                         req.success(this.imagesCache[req.src]);
                     } else {
                         this._exec(req);

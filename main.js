@@ -6,7 +6,6 @@ import './webgl/index.js'
 import LayersTree from './viewer/LayersTree/LayersTree.svelte';
 import { _layerTree } from './viewer/stores.js';
 
-window.global = {};
 const addControls = (map) => {
 	map.gmxControlsManager.init({
 		// gmxLoaderStatus: true,
@@ -91,6 +90,7 @@ const map = new L.Map(document.querySelector('#app'),
 	}
 );
 L.gmx.map = map;
+/*
 let geo_ = {
     "type": "Polygon",
     "coordinates":
@@ -155,6 +155,7 @@ console.log('length', length, length1);
 
 let tt = L.geoJson(geoml);
 L.gmx.gmxDrawing.addGeoJSON(tt, {showPointsNum: true});
+*/
 // map.gmxDrawing.options.skipEqual = true;
 // map.addControl(new L.Control.gmxDrawing({ id: 'drawing', drawOptions: {showPointsNum: true, minPoints: 0, skipEqual: true} }));
 /*			
@@ -173,8 +174,9 @@ let type = ev.type;
 			// map._gmxEventsManager._drawstart = false;
 		});
 */
+let mapId = location.search.substr(1) || 'FEZ2G';
+// mapId = 'FEZ2G';
 
-const mapId = 'FEZ2G';
 L.gmx.loadMap(mapId, {
 	// leafletMap: map,
 	hostName: '/',
@@ -193,6 +195,7 @@ addControls(map);
 	map.options.distanceUnit = mprops.DistanceUnit;
 	map.options.squareUnit = mprops.SquareUnit;
 	// map.options._gmxEndPoints = gmxEndPoints;
+	
 	gmxMap.layers.forEach(obj => {
 		const rprop = obj._gmx.rawProperties;
 		const meta = rprop.MetaProperties;
@@ -201,17 +204,18 @@ addControls(map);
 			map.fitBounds(obj.getBounds());
 console.log('rprop', rprop);
 
-			const options = {
-				contextmenuItems: [
-					{ text: 'Включить для прилипания', callback: prilip },
-					{ text: 'Отключить прилипание', callback: prilipOff },
-				]
-			};
-			obj.bindContextMenu(options);
+			// const options = {
+				// contextmenuItems: [
+					// { text: 'Включить для прилипания', callback: prilip },
+					// { text: 'Отключить прилипание', callback: prilipOff },
+				// ]
+			// };
+			// obj.bindContextMenu(options);
 
 		}
 	});
 });
+/*
 	const prilipOff = (ev) => {
 		map.gmxDrawing.getFeatures().forEach(it => {
 			if (it.options.prilipObj) it.remove();
@@ -228,3 +232,4 @@ console.log('rprop', rprop);
 			id: target.id
 		});
 	};
+*/

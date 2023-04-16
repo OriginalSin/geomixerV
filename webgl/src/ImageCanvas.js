@@ -2,31 +2,33 @@
  * @module og/ImageCanvas
  */
 
-'use strict';
+"use strict";
 
 /**
  * Usefull class for working with JS canvas object.
  * @class
- * @param {number} [width] - Canvas width. Default 256.
- * @param {number} [height] - Canvas height. Default 256.
  */
 class ImageCanvas {
-    constructor(width, height) {
+    /**
+     * @param {number} [width] - Canvas width. Default 256.
+     * @param {number} [height] - Canvas height. Default 256.
+     */
+    constructor(width = 256, height = 256) {
         /**
          * Canvas object.
          * @protected
          * @type {Object}
          */
         this._canvas = document.createElement("canvas");
-        this._canvas.width = width || 256;
-        this._canvas.height = height || 256;
+        this._canvas.width = width;
+        this._canvas.height = height;
 
         /**
          * Canvas context.
          * @protected
          * @type {Object}
          */
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
     }
 
     /**
@@ -78,7 +80,7 @@ class ImageCanvas {
     fillColor(color) {
         this._context.fillStyle = color;
         this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
-    };
+    }
 
     /**
      * Sets RGBA pixel data.
@@ -100,7 +102,7 @@ class ImageCanvas {
     resize(width, height) {
         this._canvas.width = width;
         this._canvas.height = height;
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
     }
 
     /**
@@ -113,7 +115,7 @@ class ImageCanvas {
      * @param {number} [height] - Image height slice. Image height is default.
      */
     drawImage(img, x, y, width, height) {
-        this._context = this._canvas.getContext('2d');
+        this._context = this._canvas.getContext("2d");
         this._context.drawImage(img, x || 0, y || 0, width || img.width, height || img.height);
     }
 
@@ -151,8 +153,8 @@ class ImageCanvas {
      * @param {string} [color] - Css font color.
      */
     drawText(text, x, y, font, color) {
-        this._context.fillStyle = color || 'black';
-        this._context.font = font || 'normal 14px Verdana';
+        this._context.fillStyle = color || "black";
+        this._context.font = font || "normal 14px Verdana";
         this._context.fillText(text, x || 0, y || 14);
     }
 
@@ -187,7 +189,7 @@ class ImageCanvas {
             that.resize(img.width, img.height);
             that._context.drawImage(img, 0, 0, img.width, img.height);
             callback && callback(img);
-        }
+        };
         img.src = url;
     }
 
@@ -198,20 +200,23 @@ class ImageCanvas {
     openImage() {
         var img = this.getImage();
         var dataUrl = img.src;
-        var windowContent = '<!DOCTYPE html>';
-        windowContent += '<html>'
-        windowContent += '<head><title>Print</title></head>';
-        windowContent += '<body>'
+        var windowContent = "<!DOCTYPE html>";
+        windowContent += "<html>";
+        windowContent += "<head><title>Print</title></head>";
+        windowContent += "<body>";
         windowContent += '<img src="' + dataUrl + '">';
-        windowContent += '</body>';
-        windowContent += '</html>';
-        var printWin = window.open('', '', 'width=' + img.width + 'px ,height=' + img.height + 'px');
+        windowContent += "</body>";
+        windowContent += "</html>";
+        var printWin = window.open(
+            "",
+            "",
+            "width=" + img.width + "px ,height=" + img.height + "px"
+        );
         printWin.document.open();
         printWin.document.write(windowContent);
         printWin.document.close();
         printWin.focus();
     }
-
 
     destroy() {
         this._canvas.width = 1;
@@ -219,6 +224,6 @@ class ImageCanvas {
         this._canvas = null;
         this._context = null;
     }
-};
+}
 
 export { ImageCanvas };

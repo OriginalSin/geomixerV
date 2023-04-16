@@ -2,22 +2,21 @@
  * @module og/Clock
  */
 
-'use strict';
+"use strict";
 
-import { Events } from './Events.js';
-import * as jd from './astro/jd.js';
+import * as jd from "./astro/jd.js";
+import { Events } from "./Events.js";
 
 /**
  * Class represents application timer that stores custom current julian datetime, and time speed multiplier.
  * @class
- * @param {Object} [params]: - Clock parameters:
+ * @param {Object} [params] - Clock parameters:
  * @param {number} [params.startDate=0.0] - Julian start date.
  * @param {number} [params.endDate=0.0] - Julian end date.
  * @param {number} [params.currentDate] - Julian current date. Default: current date.
  * @param {number} [params.multiplier=1.0] - Time speed multiolier.
  */
 class Clock {
-
     static get _staticCounter() {
         if (!this._counter && this._counter !== 0) {
             this._counter = 0;
@@ -29,6 +28,10 @@ class Clock {
         this._counter = n;
     }
 
+    /**
+     *
+     * @param {Object} [params] - Clock parameters:
+     */
     constructor(params) {
         params = params || {};
 
@@ -46,10 +49,7 @@ class Clock {
          * @public
          * @type {Events}
          */
-        this.events = new Events([
-            "tick",
-            "end"
-        ], this);
+        this.events = new Events(["tick", "end", "start", "stop"], this);
 
         /**
          * Start julian date clock loop.
@@ -85,7 +85,8 @@ class Clock {
          * @public
          * @type {number}
          */
-        this.multiplier = params.multiplier !== undefined ? params.multiplier : 1.0;
+        this._multiplier = params.multiplier !== undefined ? params.multiplier : 1.0;
+        this._running = 1;
 
         /**
          * Animation frame delta time.
@@ -151,10 +152,11 @@ class Clock {
     }
 
     _tick(dt) {
-        this.deltaTicks = dt * this.multiplier;
+        let m = this._multiplier * this._running;
+        this.deltaTicks = dt * m
         if (this.active) {
-            var cd = jd.addMilliseconds(this.currentDate, this.deltaTicks);
-            if (this.multiplier > 0) {
+            let cd = jd.addMilliseconds(this.currentDate, this.deltaTicks);
+            if (m > 0) {
                 if (this.endDate && cd > this.endDate) {
                     this.currentDate = this.startDate;
                     this.events.dispatch(this.events.end, this);
@@ -186,9 +188,31 @@ class Clock {
      * @param {Clock} clock - Clock instance to compare.
      * @returns {boolean} - Returns true if a clock is the same instance.
      */
-    equal(clock) {
+    isEqual(clock) {
         return this._id === clock._id;
     }
-};
+
+    start() {
+        if (this._running === 0) {
+            this._running = 1;
+            this.events.dispatch(this.events.start, this);
+        }
+    }
+
+    get multiplier() {
+        return this._multiplier;
+    }
+
+    set multiplier(value) {
+        this._multiplier = value;
+    }
+
+    stop() {
+        if (this._running === 1) {
+            this._running = 0;
+            this.events.dispatch(this.events.stop, this);
+        }
+    }
+}
 
 export { Clock };

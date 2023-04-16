@@ -2,17 +2,20 @@
  * @module og/Events
  */
 
-'use strict';
+"use strict";
 
-import { stamp, binaryInsert } from './utils/shared.js';
+import { binaryInsert, stamp } from "./utils/shared.js";
 
 /**
  * Base events class to handle custom events.
  * @class
- * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
  */
 class Events {
-
+    /**
+     *
+     * @param {Array.<string>} [eventNames] - Event names that could be dispatched.
+     * @param {*} [sender]
+     */
     constructor(eventNames, sender) {
         /**
          * Registered event names.
@@ -59,7 +62,7 @@ class Events {
      */
     registerNames(eventNames) {
         for (var i = 0; i < eventNames.length; i++) {
-            this[eventNames[i]] = { "active": true, "handlers": [] };
+            this[eventNames[i]] = { active: true, handlers: [] };
             this._eventNames.push(eventNames[i]);
         }
     }
@@ -76,10 +79,9 @@ class Events {
      * @return {boolean} -
      */
     _stamp(name, obj) {
-
         var ogid = stamp(obj);
 
-        var st = this._getStamp(name, this.__id, ogid);//name + "_" + this.__id + "_" + ogid;
+        var st = this._getStamp(name, this.__id, ogid);
 
         if (!this._stampCache[st]) {
             this._stampCache[st] = ogid;
@@ -94,7 +96,7 @@ class Events {
      * @public
      * @param {string} name - Event name to listen.
      * @param {eventCallback} callback - Event callback function.
-     * @param {Object} sender - Event callback function owner. 
+     * @param {Object} sender - Event callback function owner.
      */
     on(name, callback, sender, priority = 0) {
         if (this._stamp(name, callback)) {
@@ -105,7 +107,6 @@ class Events {
                 binaryInsert(this[name].handlers, c, (a, b) => {
                     return b._openglobus_priority - a._openglobus_priority;
                 });
-                //this[name].handlers.unshift(c);
             }
         }
     }
@@ -118,7 +119,7 @@ class Events {
      */
     off(name, callback) {
         if (callback) {
-            var st = this._getStamp(name, this.__id, callback._openglobus_id);//name + "_" + this.__id + "_" + callback._openglobus_id;
+            var st = this._getStamp(name, this.__id, callback._openglobus_id);
             if (callback._openglobus_id && this._stampCache[st]) {
                 var h = this[name].handlers;
                 var i = h.length;
@@ -147,14 +148,18 @@ class Events {
      * @param {Object} [obj] - Event object.
      */
     dispatch(event, ...args) {
-        if (event && event.active) {
-            var h = event.handlers;
-            var i = h.length;
-            while (i-- && !this._stopPropagation) {
-                h[i](...args);
+        let result = true;
+        if (event && event.active && !this._stopPropagation) {
+            let h = event.handlers.slice(0),
+                i = h.length;
+            while (i--) {
+                if (h[i](...args) === false) {
+                    result = false;
+                }
             }
         }
         this._stopPropagation = false;
+        return result;
     }
 
     /**
@@ -178,6 +183,6 @@ class Events {
         this._eventNames.length = 0;
         this._eventNames = [];
     }
-};
+}
 
 export { Events };

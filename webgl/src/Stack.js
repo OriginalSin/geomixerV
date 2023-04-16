@@ -2,7 +2,7 @@
  * @module og/Stack
  */
 
-'use strict';
+"use strict";
 
 class Node {
     constructor() {
@@ -10,11 +10,14 @@ class Node {
         this.prev = null;
         this.data = null;
     }
-};
+}
 
 class Stack {
+    /**
+     *
+     * @param {number} [size]
+     */
     constructor(size = 256) {
-
         this._current = new Node();
         this._head = this._current;
 
@@ -34,7 +37,7 @@ class Stack {
     push(data) {
         this._current = this._current.next;
         this._current.data = data;
-    };
+    }
 
     pop(data) {
         this._current = this._current.prev;
@@ -45,6 +48,6 @@ class Stack {
         this._current = this._current.prev;
         return this._current.data;
     }
-};
+}
 
 export { Stack };

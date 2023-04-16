@@ -1,15 +1,19 @@
-'use strict';
+"use strict";
 
 class QueueArray {
-    constructor(size) {
-        this._size = size || 2048;
+    /**
+     *
+     * @param {number} [size]
+     */
+    constructor(size = 2048) {
+        this._size = size;
         this._array = new Array(this._size);
         this._popIndex = parseInt(this._size * 0.5);
         this._shiftIndex = this._popIndex;
         this.length = 0;
     }
 
-    reset(){
+    reset() {
         this._popIndex = parseInt(this._size * 0.5);
         this._shiftIndex = this._popIndex;
         this.length = 0;
@@ -31,7 +35,7 @@ class QueueArray {
     pop() {
         if (this.length) {
             this.length--;
-            var res = this._array[--this._popIndex]
+            var res = this._array[--this._popIndex];
             this._array[this._popIndex] = null;
             if (!this._array[this._popIndex - 1]) {
                 this._popIndex = parseInt(this._size * 0.5);
@@ -66,6 +70,6 @@ class QueueArray {
             callback(this._array[i]);
         }
     }
-};
+}
 
 export { QueueArray };

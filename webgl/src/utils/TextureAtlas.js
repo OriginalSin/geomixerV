@@ -1,33 +1,24 @@
-'use strict';
+"use strict";
 
-import { ImageCanvas } from '../ImageCanvas.js';
-import { Rectangle } from '../Rectangle.js';
-import { ImagesCacheManager } from './ImagesCacheManager.js';
-
-
-/**
- * Border beetween stored images.
- * @type {number}
- * @const
- */
-const BORDER_SIZE = 4;
+import { ImageCanvas } from "../ImageCanvas.js";
+import { Rectangle } from "../Rectangle.js";
+import { ImagesCacheManager } from "./ImagesCacheManager.js";
 
 /**
- * Texture atlas stores images in one texture. Each image has its own 
+ * Texture atlas stores images in one texture. Each image has its own
  * atlas texture coordinates.
  * @class
  * @param {number} [width] - Texture atlas width, if it hasn't 1024 default.
  * @param {number} [height] - Texture atlas height, if it hasn't 1024 default..
  */
 class TextureAtlas {
-    constructor(width, height) {
-
+    constructor(width = 1024, height = 1024) {
         /**
          * Atlas nodes where input images store. It can be access by image.__nodeIndex.
          * @public
-         * @type {Array.<og.utils.TextureAtlasNode >}
+         * @type {Array.<utils.TextureAtlasNode >}
          */
-        this.nodes = [];
+        this.nodes = new Map();
 
         /**
          * Created gl texture.
@@ -40,7 +31,7 @@ class TextureAtlas {
          * @public
          * @type {canvas}
          */
-        this.canvas = new ImageCanvas(width || 1024, height || 1024);
+        this.canvas = new ImageCanvas(width, height);
         this.clearCanvas();
 
         this._handler = null;
@@ -76,18 +67,10 @@ class TextureAtlas {
         this.canvas.fillEmpty("black");
     }
 
-    clear() {
-        this.canvas.fillEmpty("black");
-        this.nodes = [];
-        this._images = [];
-        this._btree = null;
-        this.createTexture();
-    }
-
     /**
      * Sets openglobus gl handler that creates gl texture.
      * @public
-     * @param {og.webgl.Handler} handler - WebGL handler.
+     * @param {Handler} handler - WebGL handler.
      */
     assignHandler(handler) {
         this._handler = handler;
@@ -109,12 +92,11 @@ class TextureAtlas {
      * Adds image to the atlas and returns creted node with texture coordinates of the stored image.
      * @public
      * @param {Object} image - Input javascript image object.
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
+     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
      * and store image in the curent atlas sheme.
-     * @returns {og.utils.TextureAtlasNode} -
+     * @returns {utils.TextureAtlasNode} -
      */
     addImage(image, fastInsert) {
-
         if (!(image.width && image.height)) {
             return;
         }
@@ -123,7 +105,7 @@ class TextureAtlas {
 
         this._makeAtlas(fastInsert);
 
-        return this.nodes[image.__nodeIndex];
+        return this.get(image.__nodeIndex);
     }
 
     _completeNode(nodes, node) {
@@ -154,18 +136,17 @@ class TextureAtlas {
             tc[10] = (r.left + bs) / w;
             tc[11] = (r.top + bs) / h;
 
-            nodes[im.__nodeIndex] = node;
+            nodes.set(im.__nodeIndex, node);
         }
     }
 
     /**
      * Main atlas making function.
      * @private
-     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again 
+     * @param {boolean} [fastInsert] - If it's true atlas doesnt restore all images again
      * and store image in the curent atlas sheme.
      */
     _makeAtlas(fastInsert) {
-
         if (fastInsert && this._btree) {
             let im = this._images[this._images.length - 1];
             this._completeNode(this.nodes, this._btree.insert(im));
@@ -173,36 +154,53 @@ class TextureAtlas {
             let im = this._images.slice(0);
 
             im.sort(function (b, a) {
-                return ((a.atlasWidth || a.width) - (b.atlasWidth || b.width)) || ((a.atlasHeight || a.height) - (b.atlasHeight || b.height));
+                return (
+                    (a.atlasWidth || a.width) - (b.atlasWidth || b.width) ||
+                    (a.atlasHeight || a.height) - (b.atlasHeight || b.height)
+                );
             });
 
-            this._btree = new TextureAtlasNode(new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight()));
+            this._btree = new TextureAtlasNode(
+                new Rectangle(0, 0, this.canvas.getWidth(), this.canvas.getHeight())
+            );
             this._btree.atlas = this;
 
             this.clearCanvas();
 
-            var newNodes = [];
+            var newNodes = new Map();
             for (var i = 0; i < im.length; i++) {
                 this._completeNode(newNodes, this._btree.insert(im[i]));
             }
-            this.nodes = [];
+            this.nodes = null;
             this.nodes = newNodes;
         }
+    }
+
+    get(key) {
+        return this.nodes.get(key);
+    }
+
+    set(key, value) {
+        this.nodes.set(key, value);
     }
 
     /**
      * Creates atlas gl texture.
      * @public
      */
-    createTexture() {
+    createTexture(img, internalFormat) {
         if (this._handler) {
             this._handler.gl.deleteTexture(this.texture);
-            this.texture = this._handler.createTexture_mm(this.canvas._canvas);
+            if (img) {
+                this.canvas.resize(img.width, img.height);
+                this.canvas.drawImage(img, 0, 0, img.width, img.height);
+            }
+            this.texture = this._handler.createTexture_l(this.canvas._canvas, internalFormat);
         }
     }
 
     /**
-     * Image handler callback. 
+     * Image handler callback.
      * @callback Object~successCallback
      * @param {Image} img - Loaded image.
      */
@@ -218,8 +216,11 @@ class TextureAtlas {
     }
 
     getImageTexCoordinates(img) {
-        if (img.__nodeIndex != null && this.nodes[img.__nodeIndex]) {
-            return this.nodes[img.__nodeIndex].texCoords;
+        if (img.__nodeIndex != null) {
+            let n = this.get(img.__nodeIndex);
+            if (n) {
+                return n.texCoords;
+            }
         }
     }
 }
@@ -227,39 +228,38 @@ class TextureAtlas {
 /**
  * Atlas binary tree node.
  * @class
- * @param {og.Rectangle} rect - Node image rectangle.
+ * @param {Rectangle} rect - Node image rectangle.
  */
 class TextureAtlasNode {
-    constructor(rect) {
+    constructor(rect, texCoords = []) {
         this.childNodes = null;
         this.image = null;
         this.rect = rect;
-        this.texCoords = [];
+        this.texCoords = texCoords;
         this.atlas = null;
     }
 
     insert(img) {
-
         if (this.childNodes) {
-
             var newNode = this.childNodes[0].insert(img);
 
-            if (newNode != null)
+            if (newNode != null) {
                 return newNode;
+            }
 
             return this.childNodes[1].insert(img);
-
         } else {
-
-            if (this.image != null)
+            if (this.image != null) {
                 return null;
+            }
 
             var rc = this.rect;
             var w = (img.atlasWidth || img.width) + this.atlas.borderSize;
             var h = (img.atlasHeight || img.height) + this.atlas.borderSize;
 
-            if (w > rc.getWidth() || h > rc.getHeight())
+            if (w > rc.getWidth() || h > rc.getHeight()) {
                 return null;
+            }
 
             if (rc.fit(w, h)) {
                 this.image = img;
@@ -288,4 +288,4 @@ class TextureAtlasNode {
     }
 }
 
-export { TextureAtlas };
+export { TextureAtlas, TextureAtlasNode };

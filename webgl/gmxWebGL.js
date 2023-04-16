@@ -1,5 +1,5 @@
 // var gmxWebGL = (function (exports) {
-    'use strict';
+    // 'use strict';
 
     /**
      * @module og/ImageCanvas
@@ -7960,6 +7960,15 @@
 
       return result;
     }
+export default {
+    Framebuffer,
+    Handler,
+    Program,
+    TextureAtlas,
+    earcut,
+    flatten,
+    types
+};
 
     // exports.Framebuffer = Framebuffer;
     // exports.Handler = Handler;
@@ -7972,14 +7981,6 @@
     // Object.defineProperty(exports, '__esModule', { value: true });
 
     // return exports;
-export default {
-    Framebuffer,
-    Handler,
-    Program,
-    TextureAtlas,
-    earcut,
-    flatten,
-    types
-};
+
 // }({}));
 //# sourceMappingURL=gmxWebGL.js.map
