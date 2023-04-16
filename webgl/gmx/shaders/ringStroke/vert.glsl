@@ -1,3 +1,7 @@
+#ifdef GL_ES
+precision mediump float;
+#endif
+
 attribute vec2 prevHigh;
 attribute vec2 currentHigh;
 attribute vec2 nextHigh;
@@ -21,6 +25,7 @@ vec2 proj(vec2 coordHigh, vec2 coordLow) {
 	return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
 }
 // vec2 proj(vec2 coordinates){
+	// return vec2(-1.0 + 2.0*(coordinates - extentParams.xy) * extentParams.zw);
 	// return vec2(-1.0 + (coordinates - extentParamsHigh.xy) * extentParamsHigh.zw) * vec2(1.0, -1.0);
 // }
 

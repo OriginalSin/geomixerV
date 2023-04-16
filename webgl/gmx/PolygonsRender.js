@@ -1,3 +1,4 @@
+import gmxWebGL from '../gmxWebGL.js';
 var PolygonsRender = function (params) {
 
 	params = params || {};
@@ -247,3 +248,4 @@ var appendLineData = function (pathArr, isClosed, outVertices, outOrders, outInd
         }
     }
 };
+export default PolygonsRender;

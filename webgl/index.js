@@ -1,5 +1,6 @@
 // import PolylineRender from './gmx/PolylineRenderEarcut.js'
 import PolylineRender from './gmx/PolylineRender.js'
+// import PolylineRender from './gmx/PolygonsRender.js'
 // import PolygonsRender from './gmx/PolygonsRender.js'
 // import './viewer.css';
 // console.log('gmxWebGL', PolylineRender, gmxWebGL);
@@ -34,7 +35,6 @@ L.Map.addInitHook(function() {
 			};
 		}
 		// tileRender.appendStyles_old(gmxLayer.getStyles(), gmxLayer);
-
 	});
 	
 });
