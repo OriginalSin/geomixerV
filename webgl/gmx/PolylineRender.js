@@ -7,7 +7,7 @@ import appendLineData from './appendLineData.js';
 
 // import utilsGL from "../UtilsGL.js";
 // import * as mercator from "../src/mercator.js";
-import { Entity } from "../src/entity/Entity.js";
+// import { Entity } from "../src/entity/Entity.js";
 
 const POLYVERTICES_BUFFER = 0;
 const POLYINDEXES_BUFFER = 1;
