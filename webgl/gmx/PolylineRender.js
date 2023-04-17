@@ -5,7 +5,7 @@ import v2 from './shaders/ringStroke/vert.glsl';
 import f2 from './shaders/ringStroke/frag.glsl';
 import appendLineData from './appendLineData.js';
 
-import { Vec2 } from "../src/math/Vec2.js";
+// import utilsGL from "../UtilsGL.js";
 // import * as mercator from "../src/mercator.js";
 import { Entity } from "../src/entity/Entity.js";
 
@@ -67,8 +67,8 @@ PolylineRender.prototype = {
 			// this._textureAtlas.assignHandler(this._handler);
 
 			this._ready = true;
-			this._handler.deactivateFaceCulling();
-			this._handler.deactivateDepthTest();
+			// this._handler.deactivateFaceCulling();
+			// this._handler.deactivateDepthTest();
 
 			// this._framebuffer = new gmxWebGL.Framebuffer(this._handler, {
 				// width: this._width,
@@ -104,107 +104,49 @@ PolylineRender.prototype = {
 				fragmentShader: f2
 			}));
 			
-        // this._buffersUpdateCallbacks[LINEVERTICES_BUFFER] = this.createLineVerticesBuffer;
-        // this._buffersUpdateCallbacks[LINEINDEXES_BUFFER] = this.createLineIndexesBuffer;
-        // this._buffersUpdateCallbacks[LINEORDERS_BUFFER] = this.createLineOrdersBuffer;
-        // this._buffersUpdateCallbacks[LINECOLORS_BUFFER] = this.createLineColorsBuffer;
-        // this._buffersUpdateCallbacks[LINETHICKNESS_BUFFER] = this.createLineThicknessBuffer;
-        // this._buffersUpdateCallbacks[LINESTROKES_BUFFER] = this.createLineStrokesBuffer;
-        // this._buffersUpdateCallbacks[LINESTROKECOLORS_BUFFER] = this.createLineStrokeColorsBuffer;
-        // this._buffersUpdateCallbacks[POLYPICKINGCOLORS_BUFFER] = this.createPolyPickingColorsBuffer;
-        // this._buffersUpdateCallbacks[LINEPICKINGCOLORS_BUFFER] = this.createLinePickingColorsBuffer;
-			
 		}
 	},
-	
-    applyTexture(texture, pickingMask) {
-        // if (this.segment.initialized) {
-            this.texture = texture;
-            this._updateTexture = null;
-            this.pickingMask = pickingMask || null;
-            this._updatePickingMask = null;
-            this.isReady = true;
-            this.pickingReady = true;
-            this.textureExists = true;
-            this.isLoading = false;
-            // this.appliedNodeId = this.segment.node.nodeId;
-            this.texOffset = [0.0, 0.0, 1.0, 1.0];
-        // }
-    },
 
-	render: function (outData, tileData, layer) {
-		// this.initialize();
-			this._createBuffers(tileData, layer.options.layerID);
-            let h = this._handler,
-                gl = h.gl;
-// console.log('render', this._geometries.length, tileData.tile);
-            // gl.disable(gl.CULL_FACE);
-            // gl.disable(gl.DEPTH_TEST);
-		// this._framebuffer.activate();
-
-		gl.disable(gl.DEPTH_TEST);
-		gl.disable(gl.CULL_FACE);
-
-		// gl.enable(gl.BLEND);
-		// gl.blendEquation(gl.FUNC_ADD);
-		// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-		// gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		// gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            // let hLine = h.programs.vectorTileLineRasterization,
-                // hPoly = h.programs.vectorTilePolygonRasterization;
-
-            let _w = this._width,
-                _h = this._height,
-                width = _w,
-                height = _h,
-                _w2 = width << 1,
-                _h2 = height << 1;
-
-            // var prevLayerId = -1;
-
-            let extentParamsHigh = new Float32Array(4);
-            let extentParamsLow = new Float32Array(4);
-
-
-            let deltaTime = 0,
-                startTime = window.performance.now();
-
-            // while (this._queue.length && deltaTime < MAX_FRAME_TIME) {
-let material = {
-	segment: {
-		tileZoom: 5
-	}
-};
-let pickingEnabled = true;
-                // let material = this._queue.shift();
-                // if (material.isLoading && material.segment.node.getState() === RENDERING) {
-                    // let pickingEnabled = material.layer._pickingEnabled;
+	getExtent: function (tileData) {
 		var topLeft = tileData.topLeft;
 		var tilePoint = topLeft.tilePoint;
 		var b = topLeft.bounds;
 		let min = b.min;
-		let width1 = b.max.x - b.min.x;
-		let height1 = b.max.y - b.min.y;
+		let width1 = b.max.x - min.x;
+		let height1 = b.max.y - min.y;
+		min.x *= 1000;
+		min.y *= 1000;
+		width1 *= 1000;
+		height1 *= 1000;
 
+		let extentParamsHigh = new Float32Array(4);
+		let extentParamsLow = new Float32Array(4);
+		doubleToTwoFloats2(min.x, tempArr);
+		extentParamsHigh[0] = tempArr[0];
+		extentParamsLow[0] = tempArr[1];
 
-                    if (tilePoint.z > 2) {
-                    // if (material.segment.tileZoom < 4) {
-                        width = _w2;
-                        height = _h2;
-						// let size = 20037508.34 / Math.pow(2, tilePoint.z);
-						// min.x = -20037508.34 + tilePoint.x * size;
-						// min.y = 20037508.34 - tilePoint.y * size - size;
-						// width1 *= 2;
-						// height1 *= 2;
-                    } else {
-                        width = _w;
-                        height = _h;
-                    }
+		doubleToTwoFloats2(min.y, tempArr);
+		extentParamsHigh[1] = tempArr[0];
+		extentParamsLow[1] = tempArr[1];
+
+		extentParamsHigh[2] = 2.0 / width1;
+		extentParamsHigh[3] = 2.0 / height1;
+		return {
+			extentParamsHigh,
+			extentParamsLow
+		};
+	},
+
+	render: function (outData, tileData, layer) {
+		// this.initialize();
+		this._createBuffers(tileData, layer.options.layerID);
+		let h = this._handler,
+			gl = h.gl;
+
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
+let pickingEnabled = true;
 			this._framebuffer = new gmxWebGL.Framebuffer(this._handler, {
-				// width: width,
-				// height: height,
 				width: this._width,
 				height: this._height,
 				useDepth: false,
@@ -214,98 +156,8 @@ let pickingEnabled = true;
 			this._framebuffer.init();
 
             let f = this._framebuffer.activate();
-
-                    // let texture = material._updateTexture || h.createEmptyTexture_l(width, height);
-                    // let pickingMask = pickingEnabled ? material._updatePickingMask || h.createEmptyTexture_n(width, height) : null;
-
-                    // this.applyTexture(texture, pickingMask);
-
-                    // f.setSize(width, height);
-
-                    // f.bindOutputTexture(texture);
-
                     gl.clearColor(0.0, 0.0, 0.0, 0.0);
                     gl.clear(gl.COLOR_BUFFER_BIT);
-
-                    // let extent = material.segment.getExtentMerc();
-let extent = 
-{
-    "southWest": {
-        "lon": 0,
-        "lat": -44927335.4208431,
-        "height": 0
-    },
-    "northEast": {
-        "lon": 20037508.34,
-        "lat": -24461471.63645808,
-        "height": 0
-    }
-};
-		// var extentParams = new Float32Array([Math.fround(Math.floor(b.min.x / 65536.0) * 65536.0), Math.fround(Math.floor(b.min.y / 65536.0) * 65536.0), 2.0 / width1, 2.0 / height1]);
-		// var extentParams = new Float32Array([b.min.x, b.min.y, 2.0 / width1, 2.0 / height1]);
-		// var extentParams = new Float32Array([b.min.x, b.min.y, 2.0 / width1, 2.0 / height1]);
-// gl.uniform4fv(shu.extentParams, new Float32Array([b.min.x, b.min.y, 2.0 / (b.max.x - b.min.x), 2.0 / (b.max.y - b.min.y)]));
-		var extentParams = new Float32Array([min.x, min.y, 2.0 / width1, 2.0 / height1]);
-extentParamsHigh[0] = extentParams[0];
-extentParamsLow[0] = extentParams[1];
-
-extentParamsHigh[1] = extentParams[0];
-extentParamsLow[1] = extentParams[1];
-
-extentParamsHigh[2] = extentParams[2];
-extentParamsHigh[3] = extentParams[3];
-		var mInPixel = layer._gmx.mInPixel;
-		if (tileData.topLeft.tilePoint.z < 13) {
-                    doubleToTwoFloats2(min.x, tempArr);
-                    extentParamsHigh[0] = tempArr[0];
-                    extentParamsLow[0] = tempArr[1];
-
-                    doubleToTwoFloats2(min.y, tempArr);
-                    extentParamsHigh[1] = tempArr[0];
-                    extentParamsLow[1] = tempArr[1];
-
-                    extentParamsHigh[2] = 2.0 / width1;
-                    extentParamsHigh[3] = 2.0 / height1;
-		}
-/*		
-*/
-// console.log('gggg', tileData.topLeft.tilePoint, tileData.tile, extentParamsHigh, extentParamsLow, this._lineVerticesHighMerc, this._lineVerticesLowMerc);
-
-                    // doubleToTwoFloats2(b.min.x, tempArr);
-                    // extentParamsHigh[0] = tempArr[0];
-                    // extentParamsLow[0] = tempArr[1];
-
-                    // doubleToTwoFloats2(b.min.y, tempArr);
-                    // extentParamsHigh[1] = tempArr[0];
-                    // extentParamsLow[1] = tempArr[1];
-
-                    // extentParamsHigh[2] = 2.0 / width;
-                    // extentParamsHigh[3] = 2.0 / height;
-
-                    // doubleToTwoFloats2(extent.southWest.lon, tempArr);
-                    // extentParamsHigh[0] = tempArr[0];
-                    // extentParamsLow[0] = tempArr[1];
-
-                    // doubleToTwoFloats2(extent.southWest.lat, tempArr);
-                    // extentParamsHigh[1] = tempArr[0];
-                    // extentParamsLow[1] = tempArr[1];
-
-                    // extentParamsHigh[2] = 2.0 / (extent.northEast.lon - extent.southWest.lon);
-                    // extentParamsHigh[3] = 2.0 / (extent.northEast.lat - extent.southWest.lat);
-
-		// h.programs.billboard1.activate();
-		// var sh = h.programs.billboard1._program;
-		// var sha = sh.attributes,
-			// shu = sh.uniforms;
-
-                    // hPoly.activate();
-                    // let sh = hPoly._program;
-                    // let sha = sh.attributes,
-                        // shu = sh.uniforms;
-
-	let geomHandler = this._geometry;
-                    // let geomHandler = material.layer._geometryHandler;
-// console.log('gggg', geomHandler);
 /*
                     //=========================================
                     //Polygon rendering
@@ -347,29 +199,13 @@ extentParamsHigh[3] = extentParams[3];
 		var sh = h.programs.billboard1._program;
 		var sha = sh.attributes,
 			shu = sh.uniforms;
-
-                    // hLine.activate();
-                    // sh = hLine._program;
-                    // sha = sh.attributes;
-                    // shu = sh.uniforms;
-
-		// gl.uniform2fv(shu.viewport, [this._width / mInPixel, this._height / mInPixel]);
-                    // gl.uniform2fv(shu.viewport, [width, height]);
                     gl.uniform2fv(shu.viewport, [this._width, this._height]);
+					let {extentParamsHigh, extentParamsLow} = this.getExtent(tileData);
 
-                    // gl.uniform4fv(shu.extentParamsHigh, extentParams);
-                    // gl.uniform4fv(shu.extentParamsLow, extentParams);
                     gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
                     gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
-                    //vertex
-// this._geometries.forEach(geom => {
-	// this.setGeometryVisibility(geom);
-// });
 this.setBuffers();
-
-
-					
                     var mb = this._lineVerticesHighBufferMerc;
                     gl.bindBuffer(gl.ARRAY_BUFFER, mb);
 
@@ -449,12 +285,13 @@ this.setBuffers();
 /*
 */
             f.deactivate();
+// console.log('extentParamsHigh', extentParamsHigh);
 
 		f.readAllPixels(outData);
-let flag;
-outData.forEach((v, i) => {
-    if (!flag && v > 0) flag = true, console.log('ff', i, v);
-});
+// let flag;
+// outData.forEach((v, i) => {
+    // if (!flag && v > 0) flag = true, console.log('ff', i, v);
+// });
 		return outData;
 
 	},
@@ -510,23 +347,17 @@ outData.forEach((v, i) => {
 		var	LL = geoItems[0].properties.length - 1;
 
 		// console.time("_createBuffers5");
-var topLeft = tileData.topLeft;
-var mInPixel = topLeft.mInPixel;
-		var b = tileData.topLeft.bounds;
+// var topLeft = tileData.topLeft;
+		// var b = tileData.topLeft.bounds;
 
-		// var maxX = tileData.topLeft.bounds.max.x,
-			// minX = tileData.topLeft.bounds.min.x;
-		this._lineVerticesMerc = [];
-		this._lineOrders = [];
-		this._lineIndexes = [];
-// this._geometries = [];
-		// this._outs = {};
-// this._geometry = geometry;
+		// this._lineVerticesMerc = [];
+		// this._lineOrders = [];
+		// this._lineIndexes = [];
+
 		for (var i = 0; i < geoItems.length; i++) {
 			let item = geoItems[i];
 			// if (!b.contains(item.dataOption.bounds.getCenter())) continue;
-item.done = tileData.topLeft.tilePoint;
-			// let item = geoItems[0];
+// item.done = tileData.topLeft.tilePoint;
 			let dataOption = item.dataOption;
 			let style = dataOption.parsedStyleKeys;
 			var prop = item.properties;
@@ -539,9 +370,6 @@ item.done = tileData.topLeft.tilePoint;
 			}
 let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490196078434};
 			coords.forEach(arr => {
-// arr = [[[-1005751.3027598116,5143106.250307894],[-2105545.0669084,5250192.061702786],[-1045611.0274723344,5316025.269506689]]];
-// arr = [[[-8915895.65,0],[-8609866.87,-4148390.4],[0,-4909483.59],[0,0],[-8915895.65,0]]];
-// let arr = coords;
 					let geometry = {
 						_polyVerticesHighMerc: [],
 						_polyVerticesLowMerc: [],
@@ -561,28 +389,27 @@ let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490
 						_lineThicknessHandlerIndex: this._lineThickness.length
 					};	
                     // Creates polygon stroke data
-					appendLineData(
-                        arr,
-                        // [arr1],
-                        false,
-                        geometry._style.lineColor,
-                        pickingColor,
-                        geometry._style.lineWidth,
-                        geometry._style.strokeColor,
-                        geometry._style.strokeWidth,
-                        this._lineVerticesHighMerc,
-                        this._lineVerticesLowMerc,
-                        this._lineOrders,
-                        this._lineIndexes,
-                        this._lineColors,
-                        this._linePickingColors,
-                        this._lineThickness,
-                        this._lineStrokeColors,
-                        this._lineStrokes,
-                        geometry._lineVerticesHighMerc,
-                        geometry._lineVerticesLowMerc
-                    );
-					
+					let pars = {
+						pathArr: arr,
+						isClosed: true,
+						color: geometry._style.lineColor,
+						pickingColor,
+						thickness: geometry._style.lineWidth,
+						strokeColor: geometry._style.strokeColor,
+						strokeSize: geometry._style.strokeWidth,
+						outVerticesHigh: this._lineVerticesHighMerc,
+						outVerticesLow: this._lineVerticesLowMerc,
+						outOrders: this._lineOrders,
+						outIndexes: this._lineIndexes,
+						outColors: this._lineColors,
+						outPickingColors: this._linePickingColors,
+						outThickness: this._lineThickness,
+						outStrokeColors: this._lineStrokeColors,
+						outStrokes: this._lineStrokes,
+						outVerticesHigh2: geometry._lineVerticesHighMerc,
+						outVerticesLow2: geometry._lineVerticesLowMerc
+					};
+					appendLineData(pars);
 
                     geometry._lineVerticesLength =
                         this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
@@ -595,37 +422,10 @@ let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490
                     geometry._lineThicknessLength =
                         this._lineThickness.length - geometry._lineThicknessHandlerIndex;
 					this._geometries.push(geometry);
-			// Refresh visibility
 			});
-// this._lineVerticesHighMerc = geometry._lineVerticesHighMerc;
-// this._lineVerticesLowMerc = geometry._lineVerticesLowMerc;
-// break;
 		}
-let tp = tileData.topLeft.tilePoint;
-// if (tp.x === 0 && tp.y === 0  && tp.z === 1) {
-		var b = tileData.topLeft.bounds;
-
-		let width1 = b.max.x - b.min.x;
-		let height1 = b.max.y - b.min.y;
-		var extentParams = new Float32Array([b.min.x, b.min.y, 2.0 / width1, 2.0 / height1]);
-		// var extentParams = new Float32Array([b.min.x, b.min.y, 2.0 / width1, 2.0 / height1]);
-
-// console.log('kkkkkkk', tp, extentParams);
-// console.log('kkkkkkk', tp, extentParams, tileData, this._lineVerticesHighMerc, this._lineVerticesLowMerc);
-// }
-
-// console.log('geometry', tileData);
-
-		/*
-
-		// this._lineVerticesBufferMerc = h.createArrayBuffer(new Float32Array(this._lineVerticesMerc), 2, this._lineVerticesMerc.length / 2);
-		// this._lineIndexesBuffer = h.createElementArrayBuffer(new Uint32Array(this._lineIndexes), 1, this._lineIndexes.length);
-		// this._lineOrdersBuffer = h.createArrayBuffer(new Float32Array(this._lineOrders), 1, this._lineOrders.length / 2);
-
-		// console.timeEnd("_createBuffers5");
-		*/
 	},
-
+/*
     setGeometryVisibility(geometry) {
 		var h = this._handler,
 			gl = h.gl;
@@ -656,11 +456,19 @@ let tp = tileData.topLeft.tilePoint;
         // !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
         // this._updatedGeometry[geometry._id] = true;
 	},
+*/
 
     setBuffers() {
-            let h = this._handler,
-                gl = h.gl;
+		let h = this._handler,
+			gl = h.gl;
+console.log('extentParamsHigh', h);
 
+		
+        // this._lineVerticesHighBufferMerc = utilsGL.createArrayBuffer(gl, 
+            // this._lineVerticesHighMerc,
+            // 2,
+            // this._lineVerticesHighMerc.length / 2
+        // );
         h.gl.deleteBuffer(this._lineVerticesHighBufferMerc);
         this._lineVerticesHighBufferMerc = h.createArrayBuffer(
             new Float32Array(this._lineVerticesHighMerc),

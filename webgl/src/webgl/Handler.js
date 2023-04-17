@@ -611,20 +611,28 @@ class Handler {
      * @public
      */
     initialize() {
-        if (this._id) {
-            this.canvas = document.getElementById(this._id);
-        } else {
-            this.canvas = document.createElement("canvas");
-            this.canvas.width = this._params.width;
-            this.canvas.height = this._params.height;
-        }
+		const w = this._params.width || 256, h = this._params.height || 256;
+		const canvas = new OffscreenCanvas(w, h);
+		canvas.width = w; canvas.height = h;
+		this.canvas = canvas;
+        this.gl = canvas.getContext('webgl2', {...this._params.context, antialias: true });
+        // this.gl = canvas.getContext('webgl', this._params.context);
 
-        this.gl = Handler.getContext(this.canvas, this._params.context);
+        // if (this._id) {
+            // this.canvas = document.getElementById(this._id);
+        // } else {
+            // this.canvas = document.createElement("canvas");
+            // this.canvas.width = this._params.width;
+            // this.canvas.height = this._params.height;
+        // }
+
+        // this.gl = Handler.getContext(this.canvas, this._params.context);
 
         if(this.gl) {
             this._initialized = true;
 
             /** Sets default extensions */
+
             this._params.extensions.push("EXT_texture_filter_anisotropic");
 
             if (this.gl.type === "webgl") {
@@ -671,7 +679,7 @@ class Handler {
             /** Initilalize shaders and rendering parameters*/
             this._initPrograms();
             this._setDefaults();
-
+/*
             this.intersectionObserver = new IntersectionObserver((entries) => {
                 this._toggleVisibilityChange(entries[0].isIntersecting === true);
             }, { threshold: 0 });
@@ -685,6 +693,7 @@ class Handler {
             document.addEventListener("visibilitychange", () => {
                 this._toggleVisibilityChange(document.visibilityState === 'visible');
             });
+*/
         }
     }
 
@@ -892,7 +901,7 @@ class Handler {
      */
     drawFrame() {
         /** Calculating frame time */
-        let now = window.performance.now();
+        let now = self.performance.now();
         this.deltaTime = now - this._lastAnimationFrameTime;
         this._lastAnimationFrameTime = now;
 
@@ -908,7 +917,8 @@ class Handler {
         if (Math.floor(canvas.clientWidth * this._params.pixelRatio) !== canvas.width || Math.floor(canvas.clientHeight * this._params.pixelRatio) !== canvas.height) {
             if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
                 this.stop();
-            } else if (!document.hidden) {
+            } else {
+            // } else if (!document.hidden) {
                 this.start();
                 this.setSize(canvas.clientWidth, canvas.clientHeight);
             }
@@ -934,7 +944,7 @@ class Handler {
      */
     start() {
         if (!this._requestAnimationFrameId && this._initialized) {
-            this._lastAnimationFrameTime = window.performance.now();
+            this._lastAnimationFrameTime = self.performance.now();
             this.defaultClock.setDate(new Date());
             this._animationFrameCallback();
         }
@@ -942,7 +952,7 @@ class Handler {
 
     stop() {
         if (this._requestAnimationFrameId) {
-            window.cancelAnimationFrame(this._requestAnimationFrameId);
+            self.cancelAnimationFrame(this._requestAnimationFrameId);
             this._requestAnimationFrameId = null;
         }
     }
@@ -964,7 +974,7 @@ class Handler {
      * @private
      */
     _animationFrameCallback() {
-        this._requestAnimationFrameId = window.requestAnimationFrame(() => {
+        this._requestAnimationFrameId = self.requestAnimationFrame(() => {
             this.drawFrame();
             this._requestAnimationFrameId && this._animationFrameCallback();
         });

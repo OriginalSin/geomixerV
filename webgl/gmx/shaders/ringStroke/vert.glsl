@@ -19,29 +19,19 @@ uniform vec4 extentParamsHigh;
 uniform vec4 extentParamsLow;
 varying vec4 vColor;
 
-vec2 proj(vec2 coordHigh, vec2 coordLow) {
-	vec2 highDiff = coordHigh - extentParamsHigh.xy;
-	vec2 lowDiff = coordLow - extentParamsLow.xy;
-	return vec2(-1.0 + (highDiff + lowDiff) * extentParamsHigh.zw) * vec2(1.0, -1.0);
-}
-// vec2 proj(vec2 coordinates){
-	// return vec2(-1.0 + 2.0*(coordinates - extentParams.xy) * extentParams.zw);
-	// return vec2(-1.0 + (coordinates - extentParamsHigh.xy) * extentParamsHigh.zw) * vec2(1.0, -1.0);
-// }
+#include ./proj;
+
 
 void main(){
 	vColor = color;
 
-	// vec2 vNext = proj(nextHigh),
-		 // vCurrent = proj(currentHigh),
-		 // vPrev = proj(prevHigh);
 	vec2 vNext = proj(nextHigh, nextLow),
 		 vCurrent = proj(currentHigh, currentLow),
 		 vPrev = proj(prevHigh, prevLow);
 
-	vec2 _next = vNext;
-	vec2 _prev = vPrev;
-	vec2 _current = vCurrent;
+	vec2 _next = vNext * 1.0;
+	vec2 _prev = vPrev * 1.0;
+	vec2 _current = vCurrent * 1.0;
 
 	if(_prev == _current){
 		if(_next == _current){
@@ -67,7 +57,6 @@ void main(){
 	vec2 normalNext = normalize(vec2(-dirNext.y, dirNext.x));
 	vec2 normalPrev = normalize(vec2(dirPrev.y, -dirPrev.x));
 	vec2 d = (thickness + thicknessOutline) * 0.5 * sign(order) / viewport;
-	
 	vec2 m;
 	if(dotNP >= 0.99991){
 		m = sCurrent - normalPrev * d;
@@ -75,7 +64,7 @@ void main(){
 		vec2 dir = normalPrev + normalNext;
 		m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);
 		
-		if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ){
+		if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ) {
 			float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
 			if (occw == -1.0){
 				m = sCurrent + normalPrev * d;
