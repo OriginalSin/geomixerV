@@ -22,7 +22,7 @@ L.Map.addInitHook(function() {
 			var _data = new Uint8Array(4 * 256 * 256);
 
 			gmxLayer._webGLRenderer = function (info) {
-		console.time("tile");
+		// console.time("tile");
 				var tile = info.tile,
 					context = info.ctx;
 				if (context) {
@@ -31,7 +31,7 @@ L.Map.addInitHook(function() {
 					imageData.data.set(_data);
 					context.putImageData(imageData, 0, 0);
 				}
-		console.timeEnd("tile");
+		// console.timeEnd("tile");
 			};
 		}
 		// tileRender.appendStyles_old(gmxLayer.getStyles(), gmxLayer);

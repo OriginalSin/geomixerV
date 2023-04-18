@@ -62,24 +62,18 @@ PolylineRender.prototype = {
 		this._handler.initialize();
 
 		if (this._handler.gl) {
-
-			// this._textureAtlas = new gmxWebGL.TextureAtlas(1024, 1024);
-			// this._textureAtlas.assignHandler(this._handler);
+			let gl = this._handler.gl;
 
 			this._ready = true;
-			// this._handler.deactivateFaceCulling();
-			// this._handler.deactivateDepthTest();
+			this._framebuffer = new gmxWebGL.Framebuffer(this._handler, {
+				width: this._width,
+				height: this._height,
+				useDepth: false,
+				filter: "LINEAR"
+			});
 
-			// this._framebuffer = new gmxWebGL.Framebuffer(this._handler, {
-				// width: this._width,
-				// height: this._height,
-				// useDepth: false,
-				// filter: "LINEAR"
-			// });
-
-			// this._framebuffer.init();
-
-			this._handler.addProgram(new gmxWebGL.Program("billboard1", {
+			this._framebuffer.init();
+			this._conf = {
 				uniforms: {
                     'viewport': "vec2",
                     'thicknessOutline': "float",
@@ -88,24 +82,140 @@ PolylineRender.prototype = {
                     'extentParamsLow': "vec4"
 				},
 				attributes: {
-                    'prevHigh': "vec2",
-                    'currentHigh': "vec2",
-                    'nextHigh': "vec2",
+                    'prevHigh': {type: "vec2", itemSize: 2, bufName: 'outVerticesHigh'},
+                    'currentHigh': {type: "vec2", itemSize: 2, shift: 32, bufName: 'outVerticesHigh'},
+                    'nextHigh': {type: "vec2", itemSize: 2, shift: 64, bufName: 'outVerticesHigh'},
 
-                    'prevLow': "vec2",
-                    'currentLow': "vec2",
-                    'nextLow': "vec2",
+                    'prevLow':  {type: "vec2", itemSize: 2, shift: 0, bufName: 'outVerticesLow'},
+                    'currentLow':  {type: "vec2", itemSize: 2, shift: 32, bufName: 'outVerticesLow'},
+                    'nextLow':  {type: "vec2", itemSize: 2, shift: 64, bufName: 'outVerticesLow'},
 
-                    'order': "float",
-                    'color': "vec4",
-                    'thickness': "float"
+                    'order': {type: "float", itemSize: 1, bufName: 'outOrders'},
+                    'color': {type: "vec4", itemSize: 4, bufName: 'outColors'},
+                    'thickness': {type: "float", itemSize: 1, bufName: 'outThickness'}
 				},
 				vertexShader: v2,
 				fragmentShader: f2
-			}));
-			
+			};
+
+			const p = new gmxWebGL.Program("billboard1", this._conf);
+			this._handler.addProgram(p);
+
+			this._confBuf = Object.keys(p._attributes).reduce((a, c) => {
+				let it = p._attributes[c];
+				let k = it.bufName;
+				a[k] = a[k] || {...it, data: [], items: {}};
+				a[k].items[c] = true;
+				return a;
+			}, {});
+// console.log('dddddd', this._confBuf);
+			this._confBuf = {
+				...this._confBuf,
+				outStrokes: {
+					data: [],
+					itemSize: 1,
+					size: 0,
+					itemType: gl.FLOAT,
+					items: {
+						'thickness': { type: "float" }, 
+					}
+				},
+				outStrokeColors: {
+					data: [],
+					itemSize: 4,
+					size: 0,
+					itemType: gl.FLOAT,
+					items: {
+						'color': { type: "vec4" }, 
+					}
+				},
+				outPickingColors: {
+					data: [],
+					itemSize: 4,
+					size: 0,
+					itemType: gl.FLOAT,
+					items: {
+						'color': { type: "vec4" }, 
+					}
+				},
+				outIndexes: {
+					data: [],
+					itemSize: 1,
+					size: 1,
+					itemType: gl.UNSIGNED_INT
+				}
+			}
+
 		}
 	},
+
+    bindBuffer(name) {
+		const gl = this._handler.gl;
+		const _confBuf = this._confBuf;
+		const bufHash = _confBuf.buffers[name];
+		if (bufHash) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, bufHash.buf);
+			Object.keys(bufHash.attributes).forEach(a => {
+				let ah = bufHash.attributes[a];
+				gl.vertexAttribPointer(sha[a], bufHash.itemSize, gl.FLOAT, false, bufHash.size || 0, ah.shift || 0);
+			});
+		} else {
+			console.warn('Не найден буфер: ', name);
+		}
+	},
+
+    setBuffers(sha) {
+		const h = this._handler,
+			gl = h.gl;
+		const sh = h.programs.billboard1._program;
+		const buffers =this._confBuf;
+		// const buffers = _confBuf.buffers;
+console.log('buffers', sh, buffers);
+		Object.keys(buffers).forEach(k => {
+			const bufHash = buffers[k];
+			let arr, itemSize;
+			// if (
+				// k === 'outIndexes' ||
+				// k === 'outThickness' ||
+				// k === 'outStrokes' ||
+				// k === 'outStrokeColors' ||
+				// k === 'outColors' ||
+				// k === 'outPickingColors' ||
+				// k === 'outOrders' ||
+				// k === 'outVerticesHigh' ||
+				// k === 'outVerticesLow'
+			// ) {
+				// bufHash.data = _confBuf[k].data;
+			// }
+			const data = bufHash.data;
+			if (bufHash.itemType === gl.UNSIGNED_INT) {
+				arr = new Uint32Array(bufHash.data);
+				bufHash.buf = h.createElementArrayBuffer(
+					arr,
+					bufHash.itemSize,
+					bufHash.data.length / bufHash.size
+				);
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufHash.buf);
+			} else if (bufHash.itemType === gl.FLOAT) {
+				arr = new Float32Array(bufHash.data);
+				itemSize = arr.BYTES_PER_ELEMENT * bufHash.itemSize;
+				bufHash.buf = h.createArrayBuffer(
+					arr, itemSize,
+					arr.length / itemSize
+				);
+				if (bufHash.items) {
+					gl.bindBuffer(gl.ARRAY_BUFFER, bufHash.buf);
+					Object.keys(bufHash.items).forEach(a => {
+					// Object.keys(bufHash.attributes).forEach(a => {
+						let ah = sh._attributes[a];
+						gl.vertexAttribPointer(sha[a], bufHash.itemSize, gl.FLOAT, false, bufHash.size || 0, ah.shift || 0);
+					});
+						// gl.bindBuffer(gl.ARRAY_BUFFER, buffers.outPickingColors.buf);
+						// gl.vertexAttribPointer(sha.color, buffers.outPickingColors.itemSize, gl.FLOAT, false, 0, 0);
+				}
+			}
+		});
+    },
 
 	getExtent: function (tileData) {
 		var topLeft = tileData.topLeft;
@@ -114,10 +224,10 @@ PolylineRender.prototype = {
 		let min = b.min;
 		let width1 = b.max.x - min.x;
 		let height1 = b.max.y - min.y;
-		min.x *= 1000;
-		min.y *= 1000;
-		width1 *= 1000;
-		height1 *= 1000;
+		// min.x *= 1000;
+		// min.y *= 1000;
+		// width1 *= 1000;
+		// height1 *= 1000;
 
 		let extentParamsHigh = new Float32Array(4);
 		let extentParamsLow = new Float32Array(4);
@@ -136,156 +246,64 @@ PolylineRender.prototype = {
 			extentParamsLow
 		};
 	},
+	_drawElements: function (thickness, alpha) {
+		const h = this._handler;
+		const gl = h.gl;
+		const sh = h.programs.billboard1._program;
+		const sha = sh.attributes,
+			shu = sh.uniforms;
+		// const buffers = this._confBuf.buffers;
+		gl.uniform1f(shu.thicknessOutline, thickness);
+		gl.uniform1f(shu.alpha, alpha);
+		gl.drawElements(gl.TRIANGLE_STRIP, this._confBuf.outIndexes.numItems, gl.UNSIGNED_INT, 0);
+	},
 
 	render: function (outData, tileData, layer) {
 		// this.initialize();
 		this._createBuffers(tileData, layer.options.layerID);
 		let h = this._handler,
 			gl = h.gl;
+		let f = this._framebuffer.activate();
 
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.CULL_FACE);
-let pickingEnabled = true;
-			this._framebuffer = new gmxWebGL.Framebuffer(this._handler, {
-				width: this._width,
-				height: this._height,
-				useDepth: false,
-				filter: "LINEAR"
-			});
+		gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
-			this._framebuffer.init();
-
-            let f = this._framebuffer.activate();
-                    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                    gl.clear(gl.COLOR_BUFFER_BIT);
-/*
-                    //=========================================
-                    //Polygon rendering
-                    //=========================================
-                    gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
-                    gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesHighBufferMerc);
-                    gl.vertexAttribPointer(sha.coordinatesHigh, geomHandler._polyVerticesHighBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyVerticesLowBufferMerc);
-                    gl.vertexAttribPointer(sha.coordinatesLow, geomHandler._polyVerticesLowBufferMerc.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyColorsBuffer);
-                    gl.vertexAttribPointer(sha.colors, geomHandler._polyColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geomHandler._polyIndexesBuffer);
-
-                    gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
-                    //Polygon picking PASS
-                    if (pickingEnabled) {
-                        f.bindOutputTexture(pickingMask);
-
-                        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-                        gl.clear(gl.COLOR_BUFFER_BIT);
-
-                        gl.bindBuffer(gl.ARRAY_BUFFER, geomHandler._polyPickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.colors, geomHandler._polyPickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                        gl.drawElements(gl.TRIANGLES, geomHandler._polyIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                    }
-*/
-                    //=========================================
-                    //Strokes and linestrings rendering
-                    //=========================================
-                    // f.bindOutputTexture(texture);
 		h.programs.billboard1.activate();
 		var sh = h.programs.billboard1._program;
 		var sha = sh.attributes,
 			shu = sh.uniforms;
-                    gl.uniform2fv(shu.viewport, [this._width, this._height]);
-					let {extentParamsHigh, extentParamsLow} = this.getExtent(tileData);
+		gl.uniform2fv(shu.viewport, [this._width, this._height]);
+		let {extentParamsHigh, extentParamsLow} = this.getExtent(tileData);
 
-                    gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
-                    gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
+		gl.uniform4fv(shu.extentParamsHigh, extentParamsHigh);
+		gl.uniform4fv(shu.extentParamsLow, extentParamsLow);
 
-this.setBuffers();
-                    var mb = this._lineVerticesHighBufferMerc;
-                    gl.bindBuffer(gl.ARRAY_BUFFER, mb);
+		this.setBuffers(sha);
+		// const _confBuf = this._confBuf;
+		const buffers = this._confBuf;
 
-                    gl.vertexAttribPointer(sha.prevHigh, mb.itemSize, gl.FLOAT, false, 8, 0);
-                    gl.vertexAttribPointer(sha.currentHigh, mb.itemSize, gl.FLOAT, false, 8, 32);
-                    gl.vertexAttribPointer(sha.nextHigh, mb.itemSize, gl.FLOAT, false, 8, 64);
+		let pickingEnabled = true;
 
-                    mb = this._lineVerticesLowBufferMerc;
-                    gl.bindBuffer(gl.ARRAY_BUFFER, mb);
+		this._drawElements(4, 0.54);	// Antialias pass
+		this._drawElements(2, 1.0);		// Aliased pass
+		// this._drawElements(4, 0.54);	// Antialias pass
+		// this._drawElements(2, 1.0);		// Aliased pass
 
-                    gl.vertexAttribPointer(sha.prevLow, mb.itemSize, gl.FLOAT, false, 8, 0);
-                    gl.vertexAttribPointer(sha.currentLow, mb.itemSize, gl.FLOAT, false, 8, 32);
-                    gl.vertexAttribPointer(sha.nextLow, mb.itemSize, gl.FLOAT, false, 8, 64);
+		if (pickingEnabled) {
+			// gl.bindBuffer(gl.ARRAY_BUFFER, buffers.outPickingColors.buf);
+			// gl.vertexAttribPointer(sha.color, buffers.outPickingColors.itemSize, gl.FLOAT, false, 0, 0);
+			// this._drawElements(16, 1.0);		// Aliased pass
+	   }
+			// gl.bindBuffer(gl.ARRAY_BUFFER, buffers.outStrokes.buf);
+			// gl.vertexAttribPointer(sha.color, buffers.outStrokes.itemSize, gl.FLOAT, false, 0, 0);
+			// this._drawElements(16, 0.5);		// Aliased pass
 
-                    //order
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineOrdersBuffer);
-                    gl.vertexAttribPointer(sha.order, this._lineOrdersBuffer.itemSize, gl.FLOAT, false, 4, 0);
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.CULL_FACE);
 
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._lineIndexesBuffer);
-
-                    //PASS - stroke
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineStrokesBuffer);
-                    gl.vertexAttribPointer(sha.thickness, this._lineStrokesBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineStrokeColorsBuffer);
-                    gl.vertexAttribPointer(sha.color, this._lineStrokeColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    //Antialias pass
-                    // gl.uniform1f(shu.thicknessOutline, 2);
-                    gl.uniform1f(shu.thicknessOutline, 4);
-                    gl.uniform1f(shu.alpha, 0.54);
-                    gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                    //
-                    //Aliased pass
-                    // gl.uniform1f(shu.thicknessOutline, 1);
-                    gl.uniform1f(shu.thicknessOutline, 2);
-                    gl.uniform1f(shu.alpha, 1.0);
-                    gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
-                    //PASS - inside line
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineThicknessBuffer);
-                    gl.vertexAttribPointer(sha.thickness, this._lineThicknessBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this._lineColorsBuffer);
-                    gl.vertexAttribPointer(sha.color, this._lineColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-                    //Antialias pass
-                    // gl.uniform1f(shu.thicknessOutline, 2);
-                    gl.uniform1f(shu.thicknessOutline, 4);
-                    // gl.uniform1f(shu.alpha, 1.0);
-                    gl.uniform1f(shu.alpha, 0.54);
-                    gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                    //
-                    //Aliased pass
-                    // gl.uniform1f(shu.thicknessOutline, 1);
-                     gl.uniform1f(shu.thicknessOutline, 2);
-					gl.uniform1f(shu.alpha, 1.0);
-                    gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-
-                    if (pickingEnabled) {
-                        // f.bindOutputTexture(pickingMask);
-                        // gl.uniform1f(shu.thicknessOutline, 8);
-                        gl.uniform1f(shu.thicknessOutline, 16);
-                        gl.bindBuffer(gl.ARRAY_BUFFER, this._linePickingColorsBuffer);
-                        gl.vertexAttribPointer(sha.color, this._linePickingColorsBuffer.itemSize, gl.FLOAT, false, 0, 0);
-                        gl.drawElements(gl.TRIANGLE_STRIP, this._lineIndexesBuffer.numItems, gl.UNSIGNED_INT, 0);
-                    }
-                // } else {
-                    // material.isLoading = false;
-                // }
-
-                // deltaTime = window.performance.now() - startTime;
-            // }
-
-            gl.enable(gl.DEPTH_TEST);
-            gl.enable(gl.CULL_FACE);
-/*
-*/
-            f.deactivate();
-// console.log('extentParamsHigh', extentParamsHigh);
+		f.deactivate();
 
 		f.readAllPixels(outData);
 // let flag;
@@ -293,66 +311,18 @@ this.setBuffers();
     // if (!flag && v > 0) flag = true, console.log('ff', i, v);
 // });
 		return outData;
-
 	},
 	_createBuffers: function (tileData, layerName) {
-		var h = this._handler,
-			gl = h.gl;
-        this._geometries = [];
-
-        this._updatedGeometryArr = [];
-        this._updatedGeometry = {};
-
-        this._removeGeometryExtentArr = [];
-        this._removeGeometryExtents = {};
-
-        // Polygon arrays
-        this._polyVerticesHighMerc = [];
-        this._polyVerticesLowMerc = [];
-        this._polyColors = [];
-        this._polyPickingColors = [];
-        this._polyIndexes = [];
-
-        // Line arrays
-        this._lineVerticesHighMerc = [];
-        this._lineVerticesLowMerc = [];
-        this._lineOrders = [];
-        this._lineIndexes = [];
-        this._lineColors = [];
-        this._linePickingColors = [];
-        this._lineThickness = [];
-        this._lineStrokes = [];
-        this._lineStrokeColors = [];
-
-        // Buffers
-        this._polyVerticesHighBufferMerc = null;
-        this._polyVerticesLowBufferMerc = null;
-        this._polyColorsBuffer = null;
-        this._polyPickingColorsBuffer = null;
-        this._polyIndexesBuffer = null;
-
-        this._lineVerticesHighBufferMerc = null;
-        this._lineVerticesLowBufferMerc = null;
-        this._lineColorsBuffer = null;
-        this._linePickingColorsBuffer = null;
-        this._lineThicknessBuffer = null;
-        this._lineStrokesBuffer = null;
-        this._lineStrokeColorsBuffer = null;
-        this._lineOrdersBuffer = null;
-        this._lineIndexesBuffer = null;
-
+		// const h = this._handler,
+			// gl = h.gl;
+		const _confBuf = this._confBuf;
+		Object.keys(_confBuf).forEach(k => {
+			_confBuf[k].data = [];
+		});
 		var geoItems = tileData.geoItems,
 			length = geoItems.length;
 
 		var	LL = geoItems[0].properties.length - 1;
-
-		// console.time("_createBuffers5");
-// var topLeft = tileData.topLeft;
-		// var b = tileData.topLeft.bounds;
-
-		// this._lineVerticesMerc = [];
-		// this._lineOrders = [];
-		// this._lineIndexes = [];
 
 		for (var i = 0; i < geoItems.length; i++) {
 			let item = geoItems[i];
@@ -371,25 +341,17 @@ this.setBuffers();
 let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490196078434};
 			coords.forEach(arr => {
 					let geometry = {
-						_polyVerticesHighMerc: [],
-						_polyVerticesLowMerc: [],
-						_lineVerticesHighMerc: [],
-						_lineVerticesLowMerc: [],
-						_visibility: true,
 						_style: {
 							strokeWidth: 0,
 							lineWidth: 3,
-							lineColor: {"x":0.19,"y":0.62,"z":0.85,"w":1},
-							strokeColor: {"x":1,"y":1,"z":1,"w":0.95}
+							lineColor: {"x":1.0,"y":0,"z":0,"w":1},
+							// lineColor: {"x":0.19,"y":0.62,"z":0.85,"w":1},
+							strokeColor: {"x":0.7,"y":0.5,"z":0.19,"w":0.95}
 						},
-						_lineVerticesHandlerIndex: this._lineVerticesHighMerc.length,
-						_lineOrdersHandlerIndex: this._lineOrders.length,
-						_lineIndexesHandlerIndex: this._lineIndexes.length,
-						_lineColorsHandlerIndex: this._lineColors.length,
-						_lineThicknessHandlerIndex: this._lineThickness.length
 					};	
                     // Creates polygon stroke data
 					let pars = {
+						bufs: this._confBuf,
 						pathArr: arr,
 						isClosed: true,
 						color: geometry._style.lineColor,
@@ -397,135 +359,13 @@ let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490
 						thickness: geometry._style.lineWidth,
 						strokeColor: geometry._style.strokeColor,
 						strokeSize: geometry._style.strokeWidth,
-						outVerticesHigh: this._lineVerticesHighMerc,
-						outVerticesLow: this._lineVerticesLowMerc,
-						outOrders: this._lineOrders,
-						outIndexes: this._lineIndexes,
-						outColors: this._lineColors,
-						outPickingColors: this._linePickingColors,
-						outThickness: this._lineThickness,
-						outStrokeColors: this._lineStrokeColors,
-						outStrokes: this._lineStrokes,
-						outVerticesHigh2: geometry._lineVerticesHighMerc,
-						outVerticesLow2: geometry._lineVerticesLowMerc
 					};
 					appendLineData(pars);
-
-                    geometry._lineVerticesLength =
-                        this._lineVerticesHighMerc.length - geometry._lineVerticesHandlerIndex;
-                    geometry._lineOrdersLength =
-                        this._lineOrders.length - geometry._lineOrdersHandlerIndex;
-                    geometry._lineIndexesLength =
-                        this._lineIndexes.length - geometry._lineIndexesHandlerIndex;
-                    geometry._lineColorsLength =
-                        this._lineColors.length - geometry._lineColorsHandlerIndex;
-                    geometry._lineThicknessLength =
-                        this._lineThickness.length - geometry._lineThicknessHandlerIndex;
-					this._geometries.push(geometry);
 			});
 		}
-	},
-/*
-    setGeometryVisibility(geometry) {
-		var h = this._handler,
-			gl = h.gl;
-        var v = geometry._visibility ? 1.0 : 0.0;
-
-        var a = this._polyVerticesHighMerc,
-            b = this._polyVerticesLowMerc;
-
-        var l = geometry._polyVerticesLength;
-        var ind = geometry._polyVerticesHandlerIndex;
-        for (var i = 0; i < l; i++) {
-            a[ind + i] = geometry._polyVerticesHighMerc[i] * v;
-            b[ind + i] = geometry._polyVerticesLowMerc[i] * v;
-        }
-
-        a = this._lineVerticesHighMerc;
-        b = this._lineVerticesLowMerc;
-        l = geometry._lineVerticesLength;
-        ind = geometry._lineVerticesHandlerIndex;
-        for (i = 0; i < l; i++) {
-            a[ind + i] = geometry._lineVerticesHighMerc[i] * v;
-            b[ind + i] = geometry._lineVerticesLowMerc[i] * v;
-        }
-
-        // this._changedBuffers[POLYVERTICES_BUFFER] = true;
-        // this._changedBuffers[LINEVERTICES_BUFFER] = true;
-
-        // !this._updatedGeometry[geometry._id] && this._updatedGeometryArr.push(geometry);
-        // this._updatedGeometry[geometry._id] = true;
-	},
-*/
-
-    setBuffers() {
-		let h = this._handler,
-			gl = h.gl;
-console.log('extentParamsHigh', h);
-
-		
-        // this._lineVerticesHighBufferMerc = utilsGL.createArrayBuffer(gl, 
-            // this._lineVerticesHighMerc,
-            // 2,
-            // this._lineVerticesHighMerc.length / 2
-        // );
-        h.gl.deleteBuffer(this._lineVerticesHighBufferMerc);
-        this._lineVerticesHighBufferMerc = h.createArrayBuffer(
-            new Float32Array(this._lineVerticesHighMerc),
-            2,
-            this._lineVerticesHighMerc.length / 2
-        );
-
-        h.gl.deleteBuffer(this._lineVerticesLowBufferMerc);
-        this._lineVerticesLowBufferMerc = h.createArrayBuffer(
-            new Float32Array(this._lineVerticesLowMerc),
-            2,
-            this._lineVerticesLowMerc.length / 2
-        );
-        h.gl.deleteBuffer(this._lineIndexesBuffer);
-        this._lineIndexesBuffer = h.createElementArrayBuffer(
-            new Uint32Array(this._lineIndexes),
-            1,
-            this._lineIndexes.length
-        );
-        h.gl.deleteBuffer(this._lineOrdersBuffer);
-        this._lineOrdersBuffer = h.createArrayBuffer(
-            new Float32Array(this._lineOrders),
-            1,
-            this._lineOrders.length / 2
-        );
-        h.gl.deleteBuffer(this._lineColorsBuffer);
-        this._lineColorsBuffer = h.createArrayBuffer(
-            new Float32Array(this._lineColors),
-            4,
-            this._lineColors.length / 4
-        );
-        h.gl.deleteBuffer(this._linePickingColorsBuffer);
-        this._linePickingColorsBuffer = h.createArrayBuffer(
-            new Float32Array(this._linePickingColors),
-            4,
-            this._linePickingColors.length / 4
-        );
-        h.gl.deleteBuffer(this._lineThicknessBuffer);
-        this._lineThicknessBuffer = h.createArrayBuffer(
-            new Float32Array(this._lineThickness),
-            1,
-            this._lineThickness.length
-        );
-        h.gl.deleteBuffer(this._lineStrokesBuffer);
-        this._lineStrokesBuffer = h.createArrayBuffer(
-            new Float32Array(this._lineStrokes),
-            1,
-            this._lineStrokes.length
-        );
-        h.gl.deleteBuffer(this._lineStrokeColorsBuffer);
-        this._lineStrokeColorsBuffer = h.createArrayBuffer(
-            new Float32Array(this._lineStrokeColors),
-            4,
-            this._lineStrokeColors.length / 4
-        );
-
-    }
+		this._confBuf.outIndexes.numItems = this._confBuf.outIndexes.data.length;
+		// buffers.outIndexes.numItems = buffers.outIndexes.data.length;
+	}
 
 };
 function doubleToTwoFloats2(value, highLowArr) {

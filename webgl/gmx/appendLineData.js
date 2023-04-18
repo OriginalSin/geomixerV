@@ -20,7 +20,7 @@ const appendLineData = (attr) => {
 			outVerticesLow2
 		} = attr;
         var index = 0;
-
+outIndexes = attr.bufs.outIndexes.data;
         if (outIndexes.length > 0) {
             index = outIndexes[outIndexes.length - 5] + 9;
             outIndexes.push(index, index);
@@ -76,7 +76,8 @@ const appendLineData = (attr) => {
     };
 
 function doubleToTwoFloatArrays(v, attr) {
-    let x = v[0] * 1000, y = v[1] * 1000,
+    let x = v[0], y = v[1],
+    // let x = v[0] * 1000, y = v[1] * 1000,
 		// dbx = x,
 		// dby = y,
 		dbx = Math.floor(x / 65536.0) * 65536.0,
@@ -84,11 +85,10 @@ function doubleToTwoFloatArrays(v, attr) {
 		hx = Math.fround(dbx), hy = Math.fround(dby),
 		lx = Math.fround(x - dbx), ly = Math.fround(y - dby);
 
-	attr.outVerticesHigh.push(hx,hy, hx,hy, hx,hy, hx,hy);
-	attr.outVerticesHigh2.push(hx,hy, hx,hy, hx,hy, hx,hy);
+	attr.bufs.outVerticesHigh.data.push(hx,hy, hx,hy, hx,hy, hx,hy);
+	// attr.outVerticesHigh.push(hx,hy, hx,hy, hx,hy, hx,hy);
 
-	attr.outVerticesLow.push(lx,ly, lx,ly, lx,ly, lx,ly);
-	attr.outVerticesLow2.push(lx,ly, lx,ly, lx,ly, lx,ly);
+	attr.bufs.outVerticesLow.data.push(lx,ly, lx,ly, lx,ly, lx,ly);
 	
 	let t = attr.thickness,
 		color = attr.color,
@@ -99,12 +99,12 @@ function doubleToTwoFloatArrays(v, attr) {
 		pickingColor = attr.pickingColor,
 		p = [pickingColor.x, pickingColor.y, pickingColor.z, 1.0];
 
-	attr.outOrders.push(1, -1, 2, -2);
-	attr.outThickness.push(t, t, t, t);
-	attr.outStrokes.push(s, s, s, s);
-	attr.outColors.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
-	attr.outStrokeColors.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
-	attr.outPickingColors.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
+	attr.bufs.outOrders.data.push(1, -1, 2, -2);
+	attr.bufs.outThickness.data.push(t, t, t, t);
+	attr.bufs.outColors.data.push(c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3], c[0], c[1], c[2], c[3]);
+	attr.bufs.outStrokes.data.push(s, s, s, s);
+	attr.bufs.outStrokeColors.data.push(sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3], sc[0], sc[1], sc[2], sc[3]);
+	attr.bufs.outPickingColors.data.push(p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3], p[0], p[1], p[2], p[3]);
 
 // console.log('doubleToTwoFloatArrays', v);
 }
