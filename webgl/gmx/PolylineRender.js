@@ -120,24 +120,24 @@ PolylineRender.prototype = {
 						'thickness': { type: "float" }, 
 					}
 				},
-				outStrokeColors: {
-					data: [],
-					itemSize: 4,
-					size: 0,
-					itemType: gl.FLOAT,
-					items: {
+				// outStrokeColors: {
+					// data: [],
+					// itemSize: 4,
+					// size: 0,
+					// itemType: gl.FLOAT,
+					// items: {
 						'color': { type: "vec4" }, 
-					}
-				},
-				outPickingColors: {
-					data: [],
-					itemSize: 4,
-					size: 0,
-					itemType: gl.FLOAT,
-					items: {
+					// }
+				// },
+				// outPickingColors: {
+					// data: [],
+					// itemSize: 4,
+					// size: 0,
+					// itemType: gl.FLOAT,
+					// items: {
 						'color': { type: "vec4" }, 
-					}
-				},
+					// }
+				// },
 				outIndexes: {
 					data: [],
 					itemSize: 1,
@@ -150,13 +150,16 @@ PolylineRender.prototype = {
 	},
 
     bindBuffer(name) {
-		const gl = this._handler.gl;
-		const _confBuf = this._confBuf;
-		const bufHash = _confBuf.buffers[name];
+		const h = this._handler,
+			gl = h.gl;
+		const sh = h.programs.billboard1._program;
+		const sha = sh.attributes,
+			shu = sh.uniforms;
+		const bufHash = this._confBuf[name];
 		if (bufHash) {
 			gl.bindBuffer(gl.ARRAY_BUFFER, bufHash.buf);
-			Object.keys(bufHash.attributes).forEach(a => {
-				let ah = bufHash.attributes[a];
+			Object.keys(bufHash.items).forEach(a => {
+				let ah = sh._attributes[a];
 				gl.vertexAttribPointer(sha[a], bufHash.itemSize, gl.FLOAT, false, bufHash.size || 0, ah.shift || 0);
 			});
 		} else {
@@ -168,9 +171,9 @@ PolylineRender.prototype = {
 		const h = this._handler,
 			gl = h.gl;
 		const sh = h.programs.billboard1._program;
-		const buffers =this._confBuf;
+		const buffers = this._confBuf;
 		// const buffers = _confBuf.buffers;
-console.log('buffers', sh, buffers);
+// console.log('buffers', sh, buffers);
 		Object.keys(buffers).forEach(k => {
 			const bufHash = buffers[k];
 			let arr, itemSize;
@@ -204,14 +207,7 @@ console.log('buffers', sh, buffers);
 					arr.length / itemSize
 				);
 				if (bufHash.items) {
-					gl.bindBuffer(gl.ARRAY_BUFFER, bufHash.buf);
-					Object.keys(bufHash.items).forEach(a => {
-					// Object.keys(bufHash.attributes).forEach(a => {
-						let ah = sh._attributes[a];
-						gl.vertexAttribPointer(sha[a], bufHash.itemSize, gl.FLOAT, false, bufHash.size || 0, ah.shift || 0);
-					});
-						// gl.bindBuffer(gl.ARRAY_BUFFER, buffers.outPickingColors.buf);
-						// gl.vertexAttribPointer(sha.color, buffers.outPickingColors.itemSize, gl.FLOAT, false, 0, 0);
+					this.bindBuffer(k);
 				}
 			}
 		});
@@ -322,14 +318,17 @@ console.log('buffers', sh, buffers);
 		var geoItems = tileData.geoItems,
 			length = geoItems.length;
 
-		var	LL = geoItems[0].properties.length - 1;
+		const LL = geoItems[0].properties.length - 1;
+console.log('tileData', tileData);
 
 		for (var i = 0; i < geoItems.length; i++) {
 			let item = geoItems[i];
 			// if (!b.contains(item.dataOption.bounds.getCenter())) continue;
 // item.done = tileData.topLeft.tilePoint;
 			let dataOption = item.dataOption;
-			let style = dataOption.parsedStyleKeys;
+
+			let hiddenLines = dataOption.hiddenLines;
+			let stItem = dataOption.parsedStyleKeys;
 			var prop = item.properties;
 			var geo = prop[LL];
 			var coords = geo.coordinates;
@@ -338,35 +337,55 @@ console.log('buffers', sh, buffers);
 			} else if (geo.type === 'LINESTRING') {
 				coords = [coords];
 			}
-let pickingColor = {"x":0.7254901960784313,"y":0.7764705882352941,"z":0.33725490196078434};
-			coords.forEach(arr => {
-					let geometry = {
-						_style: {
-							strokeWidth: 0,
-							lineWidth: 3,
-							lineColor: {"x":1.0,"y":0,"z":0,"w":1},
-							// lineColor: {"x":0.19,"y":0.62,"z":0.85,"w":1},
-							strokeColor: {"x":0.7,"y":0.5,"z":0.19,"w":0.95}
-						},
+			coords.forEach((arr, i) => {
+				let arr1 = hiddenLines ? getSegmentsArr(hiddenLines[i], arr) : [arr];
+
+				arr1.forEach(pathArr => {
+
+					let style = {
+							// strokeWidth: 0,
+							lineWidth: stItem.lineWidth,
+							lineColor: stItem.webgl.strokeStyle || [0,0,1, 1],
+							pickingColor: stItem.webgl.pickingColor || [1,0,1, 0.95],
+							strokeColor: stItem.webgl.strokeColor || [0,0,1, 0.95]
+							// {"x":0.7,"y":0.5,"z":0.19,"w":0.95}
 					};	
-                    // Creates polygon stroke data
-					let pars = {
+					appendLineData({
+						isClosed: false,
 						bufs: this._confBuf,
-						pathArr: arr,
-						isClosed: true,
-						color: geometry._style.lineColor,
-						pickingColor,
-						thickness: geometry._style.lineWidth,
-						strokeColor: geometry._style.strokeColor,
-						strokeSize: geometry._style.strokeWidth,
-					};
-					appendLineData(pars);
+						pathArr,
+						style
+					});
+				});
 			});
 		}
 		this._confBuf.outIndexes.numItems = this._confBuf.outIndexes.data.length;
 		// buffers.outIndexes.numItems = buffers.outIndexes.data.length;
 	}
 
+};
+
+function getSegmentsArr(hidden, pathArr) {
+	let paths = [];
+	pathArr.forEach((arr, i) => {
+		let p1 = [];
+		let b = 0;
+		let hj = hidden[i].slice(0);
+		hj.forEach(n => {
+			if (n - b > 1) {
+				p1.push(arr.slice(b, n));
+			}
+			b = n;
+		});
+		let len = arr.length;
+		if (len - b > 1) {
+			p1.push(arr.slice(b, len));
+		}
+		if (p1.length) {
+			paths.push(p1);
+		}
+	});
+	return paths;
 };
 function doubleToTwoFloats2(value, highLowArr) {
     if (value >= 0.0) {
