@@ -26,6 +26,7 @@ L.Map.addInitHook(function() {
 				var tile = info.tile,
 					context = info.ctx;
 				if (context) {
+					if (gmx.lastHover) info.lastHoverId = gmx.lastHover.id;
 					tileRender.render(_data, info, gmxLayer);
 					var imageData = context.createImageData(tile.width, tile.height);
 					imageData.data.set(_data);

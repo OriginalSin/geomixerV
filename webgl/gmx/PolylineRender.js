@@ -319,7 +319,7 @@ PolylineRender.prototype = {
 			length = geoItems.length;
 
 		const LL = geoItems[0].properties.length - 1;
-console.log('tileData', tileData);
+console.log('tileData', tileData.lastHoverId);
 
 		for (var i = 0; i < geoItems.length; i++) {
 			let item = geoItems[i];
@@ -328,7 +328,10 @@ console.log('tileData', tileData);
 			let dataOption = item.dataOption;
 
 			let hiddenLines = dataOption.hiddenLines;
-			let stItem = dataOption.parsedStyleKeys;
+			let stItem = dataOption[tileData.lastHoverId ? 'parsedStyleHover' : 'parsedStyleKeys'];
+			// let stItem = dataOption.parsedStyleKeys;
+console.log('tttt', tileData.lastHoverId, stItem);
+			
 			var prop = item.properties;
 			var geo = prop[LL];
 			var coords = geo.coordinates;

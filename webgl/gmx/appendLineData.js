@@ -67,8 +67,10 @@ function doubleToTwoFloatArrays(v, attr, thickness) {
 		// dby = y,
 		dbx = Math.floor(x / 65536.0) * 65536.0,
 		dby = Math.floor(y / 65536.0) * 65536.0,
-		hx = Math.fround(dbx), hy = Math.fround(dby),
-		lx = Math.fround(x - dbx), ly = Math.fround(y - dby);
+		// hx = Math.fround(dbx), hy = Math.fround(dby),
+		// lx = Math.fround(x - dbx), ly = Math.fround(y - dby);
+		hx = Math.fround(x), hy = Math.fround(y),
+		lx = Math.fround(x - hx), ly = Math.fround(y - hy);
 
 	let bufs = attr.bufs;
 	bufs.outVerticesHigh.data.push(hx,hy, hx,hy, hx,hy, hx,hy);

@@ -200,9 +200,31 @@ addControls(map);
 		const rprop = obj._gmx.rawProperties;
 		const meta = rprop.MetaProperties;
 		if (rprop.visible) {
+			let styles = obj.getStyles();
+			// obj.setStyles(styles.map(it => {
+			let stArr = styles.map(it => {
+				if (it.HoverStyle) {
+					if (it.HoverStyle.weight) it.HoverStyle.weight += 1;
+					if (it.HoverStyle.fillOpacity) it.HoverStyle.fillOpacity += 0.2;
+				}
+				return it;
+			});
+			// }));
+			obj.setStyles(stArr);
+			
+   // var hoverStyle = $.extend(true, {}, templateStyle);
+        // var style = layer.getStyle(styleIndex);
+
+        // if (templateStyle.outline && typeof templateStyle.outline.thickness != 'undefined')
+            // hoverStyle.outline.thickness = Number(templateStyle.outline.thickness) + 1;
+
+        // if (templateStyle.fill && typeof templateStyle.fill.opacity != 'undefined' && templateStyle.fill.opacity > 0)
+            // hoverStyle.fill.opacity = Math.min(Number(templateStyle.fill.opacity + 20), 100);
+
+		
 			map.addLayer(obj);
 			map.fitBounds(obj.getBounds());
-console.log('rprop', rprop);
+console.log('rprop', rprop, styles);
 
 			// const options = {
 				// contextmenuItems: [
