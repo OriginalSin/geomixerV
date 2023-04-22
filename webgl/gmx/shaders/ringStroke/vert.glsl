@@ -64,6 +64,7 @@ void main(){
 		vec2 dir = normalPrev + normalNext;
 		m = sCurrent + dir * d / (dirNext.x * dir.y - dirNext.y * dir.x);
 		
+		float distM = distance(sCurrent, m);
 		if( dotNP > 0.5 && dot(dirNext + dirPrev, m - sCurrent) < 0.0 ) {
 			float occw = order * sign(dirNext.x * dirPrev.y - dirNext.y * dirPrev.x);
 			if (occw == -1.0){
@@ -75,7 +76,11 @@ void main(){
 			} else if(occw == 2.0){
 				m = sCurrent + normalPrev * d;
 			}
-		} else if(distance(sCurrent, m) > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
+		// } else if(distM > min(distance(sCurrent, sNext), distance(sCurrent, sPrev))){
+			// m = sCurrent + normalNext * d; // ???
+		} else if(distM > distance(sCurrent, sNext)){
+			m = sCurrent + normalPrev * d;
+		} else if(distM > distance(sCurrent, sPrev)){
 			m = sCurrent + normalNext * d;
 		}
 	}

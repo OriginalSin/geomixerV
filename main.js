@@ -199,18 +199,21 @@ addControls(map);
 	gmxMap.layers.forEach(obj => {
 		const rprop = obj._gmx.rawProperties;
 		const meta = rprop.MetaProperties;
-		if (rprop.visible) {
+		if (obj.getStyles) {
 			let styles = obj.getStyles();
-			// obj.setStyles(styles.map(it => {
-			let stArr = styles.map(it => {
+			obj.setStyles(styles.map(it => {
+			// let stArr = styles.map(it => {
 				if (it.HoverStyle) {
+					if (it.HoverStyle.color) it.HoverStyle.color = 1223345;
 					if (it.HoverStyle.weight) it.HoverStyle.weight += 1;
 					if (it.HoverStyle.fillOpacity) it.HoverStyle.fillOpacity += 0.2;
 				}
 				return it;
-			});
-			// }));
-			obj.setStyles(stArr);
+			// });
+			}));
+			// obj.setStyles(stArr);
+		}
+		if (rprop.visible) {
 			
    // var hoverStyle = $.extend(true, {}, templateStyle);
         // var style = layer.getStyle(styleIndex);
@@ -224,7 +227,7 @@ addControls(map);
 		
 			map.addLayer(obj);
 			map.fitBounds(obj.getBounds());
-console.log('rprop', rprop, styles);
+// console.log('rprop', rprop, styles);
 
 			// const options = {
 				// contextmenuItems: [
